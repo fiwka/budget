@@ -7,9 +7,21 @@ kotlin = "2.3.0"
 springBoot = "4.0.1"
 springDependencyManagement = "1.1.7"
 springCloud = "2025.1.0"
+liquibasePlugin = "3.0.2"
+liquibase = "5.0.1"
+postgresql = "42.7.8"
+picocli = "4.7.7"
+jaxb = "2.3.1"
+snakeyaml = "2.5"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinSpringPlugin = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
 springBootPlugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
 springDependencyManagementPlugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "springDependencyManagement" }
+liquibaseCore = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
+jaxb = { module = "javax.xml.bind:jaxb-api", version.ref = "jaxb" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+liquibaseGroovyDsl = { module = "org.liquibase:liquibase-groovy-dsl", version.ref = "liquibasePlugin" }
