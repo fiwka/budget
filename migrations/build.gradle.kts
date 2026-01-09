@@ -13,6 +13,7 @@ dependencies {
     liquibase(libs.picocli)
     liquibase(libs.snakeyaml)
     liquibase(libs.postgresql)
+    liquibase(libs.jaxb)
 }
 
 val migrationTask =
