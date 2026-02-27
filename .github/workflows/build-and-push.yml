@@ -4,6 +4,9 @@ on:
   push:
     branches: [ master ]
     tags: [ 'v*' ]
+  pull_request:
+    branches:
+      - master
 
 env:
   REGISTRY: ghcr.io
@@ -59,8 +62,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=,format=short
-            # для ветки main добавляем тег latest
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
