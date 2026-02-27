@@ -9,6 +9,13 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
-include("eureka-server", "migrations")
+include(
+    "eureka-server",
+    "data-service",
+    "analytics-service",
+    "api-gateway",
+    "ai-agent",
+    "mcp-server"
+)
 
 rootProject.name = "budget"

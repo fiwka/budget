@@ -1,0 +1,57 @@
+services:
+  eureka-server:
+    image: ghcr.io/fiwka/eureka-server:latest
+    networks:
+      - budget
+  budget_data_pg:
+    image: postgres
+    hostname: budget-data-pg
+    environment:
+      POSTGRES_PASSWORD: qwerty123
+      POSTGRES_DB: budget_data
+    volumes:
+      - ./docker_data/budget_data:/var/lib/postgresql
+    networks:
+      - budget
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  budget_analytics_pg:
+    image: postgres
+    hostname: budget-analytics-pg
+    environment:
+      POSTGRES_PASSWORD: qwerty123
+      POSTGRES_DB: budget_analytics
+    volumes:
+      - ./docker_data/budget_analytics:/var/lib/postgresql
+    networks:
+      - budget
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  budget_data_migrations:
+    build:
+      context: ./migrations
+      dockerfile: Dockerfile
+    command: --url=jdbc:postgresql://budget-data-pg:5432/budget_data --username=postgres --password=qwerty123 --changelog-file=data/master.yaml update
+    depends_on:
+      budget_data_pg:
+        condition: service_healthy
+    networks:
+      - budget
+  budget_analytics_migrations:
+    build:
+      context: ./migrations
+      dockerfile: Dockerfile
+    command: --url=jdbc:postgresql://budget-analytics-pg:5432/budget_data --username=postgres --password=qwerty123 --changelog-file=analytics/master.yaml update
+    depends_on:
+      budget_analytics_pg:
+        condition: service_healthy
+    networks:
+      - budget
+networks:
+  budget:
