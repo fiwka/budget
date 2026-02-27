@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-server")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("com.github.ben-manes.caffeine:caffeine")
 }
@@ -15,5 +14,5 @@ dependencyManagement {
 }
 
 application {
-    mainClass = "xyz.fiwka.budget.discovery.DiscoveryApplicationKt"
+    mainClass = "xyz.fiwka.budget.dataservice.DataServiceApplicationKt"
 }
