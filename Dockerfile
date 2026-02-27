@@ -8,11 +8,10 @@ COPY gradle ./gradle
 RUN chmod +x gradlew
 
 COPY build.gradle.kts* build.gradle* settings.gradle.kts* settings.gradle* gradle.properties* ./
+COPY . .
 
 RUN --mount=type=cache,target=/root/.gradle/caches \
     ./gradlew dependencies --no-daemon
-
-COPY . .
 
 RUN --mount=type=cache,target=/root/.gradle/caches \
     if [ -n "$MODULE" ]; then \
