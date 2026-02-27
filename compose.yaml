@@ -37,7 +37,7 @@ services:
     build:
       context: ./migrations
       dockerfile: Dockerfile
-    command: --url=jdbc:postgresql://budget-data-pg:5432/budget_data --username=postgres --password=qwerty123 --changelog-file=data/master.yaml update
+    command: --url=jdbc:postgresql://budget-data-pg:5432/budget_data --username=postgres --password=qwerty123 --changelog-file=data/db/master.yaml update
     depends_on:
       budget_data_pg:
         condition: service_healthy
@@ -47,7 +47,7 @@ services:
     build:
       context: ./migrations
       dockerfile: Dockerfile
-    command: --url=jdbc:postgresql://budget-analytics-pg:5432/budget_data --username=postgres --password=qwerty123 --changelog-file=analytics/master.yaml update
+    command: --url=jdbc:postgresql://budget-analytics-pg:5432/budget_analytics --username=postgres --password=qwerty123 --changelog-file=analytics/db/master.yaml update
     depends_on:
       budget_analytics_pg:
         condition: service_healthy

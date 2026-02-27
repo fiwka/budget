@@ -8,3 +8,7 @@ build/
 **/**.env
 docker_data
 .kotlin
+.github
+compose.yaml
+.git
+.gitignore
