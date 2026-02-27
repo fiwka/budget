@@ -3,12 +3,8 @@ FROM eclipse-temurin:25-jdk-alpine AS builder
 ARG MODULE
 WORKDIR /app
 
-COPY gradlew .
-COPY gradle ./gradle
-RUN chmod +x gradlew
-
-COPY build.gradle.kts* build.gradle* settings.gradle.kts* settings.gradle* gradle.properties* ./
 COPY . .
+RUN chmod +x gradlew
 
 RUN --mount=type=cache,target=/root/.gradle/caches \
     ./gradlew dependencies --no-daemon
