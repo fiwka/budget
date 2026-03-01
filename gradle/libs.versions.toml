@@ -7,6 +7,7 @@ kotlin = "2.3.0"
 springBoot = "4.0.1"
 springDependencyManagement = "1.1.7"
 springCloud = "2025.1.0"
+postgresql = "42.7.10"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -14,3 +15,4 @@ kotlinSpringPlugin = { module = "org.jetbrains.kotlin.plugin.spring:org.jetbrain
 kotlinJpaPlugin = { module = "org.jetbrains.kotlin.plugin.jpa:org.jetbrains.kotlin.plugin.jpa.gradle.plugin", version.ref = "kotlin" }
 springBootPlugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
 springDependencyManagementPlugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "springDependencyManagement" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
