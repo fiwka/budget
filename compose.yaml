@@ -3,10 +3,60 @@ services:
     image: ghcr.io/fiwka/eureka-server:latest
     networks:
       - budget
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8761/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
   data-service:
     image: ghcr.io/fiwka/data-service:latest
     networks:
       - budget
+    environment:
+      POSTGRES_HOST: budget-data-pg
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: budget_data
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty123
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      budget_data_pg:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+  analytics-service:
+    image: ghcr.io/fiwka/analytics-service:latest
+    networks:
+      - budget
+    environment:
+      POSTGRES_HOST: budget-analytics-pg
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: budget_analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty123
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      budget_analytics_pg:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
   zookeeper:
     image: zookeeper:latest
     environment:
@@ -21,10 +71,16 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:29092"]
+      interval: 30s
+      retries: 5
+      timeout: 10s
   budget_data_pg:
     image: postgres
     hostname: budget-data-pg

@@ -20,7 +20,7 @@ create table transactions(
     completed_date timestamptz not null,
     amount decimal(12, 2) not null,
     appendix jsonb,
-    version int not null default 0,
+    version bigint not null default 0,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
