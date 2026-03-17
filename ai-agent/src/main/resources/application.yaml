@@ -1,3 +1,7 @@
 spring:
   application:
     name: ai-agent
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_SERVER}/eureka/

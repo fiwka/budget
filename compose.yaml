@@ -1,6 +1,7 @@
 services:
   eureka-server:
     image: ghcr.io/fiwka/eureka-server:latest
+    hostname: eureka
     networks:
       - budget
     healthcheck:
@@ -20,6 +21,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: qwerty123
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER: eureka:8761
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
       interval: 30s
@@ -44,6 +46,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: qwerty123
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER: eureka:8761
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
       interval: 30s

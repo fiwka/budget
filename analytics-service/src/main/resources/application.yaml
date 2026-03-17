@@ -11,3 +11,7 @@ spring:
     listener:
       ack-mode: record
       concurrency: 3
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_SERVER}/eureka/
