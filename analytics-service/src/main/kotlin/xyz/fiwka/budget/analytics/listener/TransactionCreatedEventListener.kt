@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
-import xyz.fiwka.budget.analytics.model.event.TransactionCreatedEvent
+import xyz.fiwka.budget.model.event.transaction.TransactionCreatedEvent
 
 @Component
 class TransactionCreatedEventListener {

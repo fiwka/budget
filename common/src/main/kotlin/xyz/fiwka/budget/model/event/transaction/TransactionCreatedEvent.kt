@@ -1,4 +1,4 @@
-package xyz.fiwka.budget.dataservice.model.event
+package xyz.fiwka.budget.model.event.transaction
 
 import java.math.BigDecimal
 import java.time.ZonedDateTime

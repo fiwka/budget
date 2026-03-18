@@ -15,7 +15,8 @@ include(
     "analytics-service",
     "api-gateway",
     "ai-agent",
-    "mcp-server"
+    "mcp-server",
+    "common"
 )
 
 rootProject.name = "budget"
