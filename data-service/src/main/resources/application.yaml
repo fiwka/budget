@@ -9,8 +9,6 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.trusted.packages: "xyz.fiwka.budget.model"
 eureka:
   client:
     service-url:
