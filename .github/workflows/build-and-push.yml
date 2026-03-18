@@ -22,7 +22,7 @@ jobs:
       - name: Get list of subprojects (modules)
         id: set-modules
         run: |
-          MODULES=$(find . -maxdepth 2 -name "build.gradle.kts" -o -name "build.gradle" | xargs dirname | grep -v "^.$" | grep -v "buildSrc" | sed 's|^\./||' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          MODULES=$(find . -maxdepth 2 -name "build.gradle.kts" -o -name "build.gradle" | xargs dirname | grep -v "^.$" | grep -v "buildSrc" | grep -v "common" | sed 's|^\./||' | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "modules=$MODULES" >> $GITHUB_OUTPUT
 
   build-and-push:
