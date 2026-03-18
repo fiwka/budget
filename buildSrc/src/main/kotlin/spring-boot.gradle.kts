@@ -10,6 +10,7 @@ plugins {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.1.0")
     runtimeOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 }
