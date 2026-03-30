@@ -8,6 +8,7 @@ springBoot = "4.0.1"
 springDependencyManagement = "1.1.7"
 springCloud = "2025.1.0"
 postgresql = "42.7.10"
+mapstruct = "1.6.3"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -16,3 +17,5 @@ kotlinJpaPlugin = { module = "org.jetbrains.kotlin.plugin.jpa:org.jetbrains.kotl
 springBootPlugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "springBoot" }
 springDependencyManagementPlugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "springDependencyManagement" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }

@@ -1,4 +1,4 @@
-package xyz.fiwka.budget.dataservice.entity
+package xyz.fiwka.budget.dataservice.infrastructure.entity
 
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -10,11 +10,11 @@ import kotlin.uuid.toJavaUuid
 
 @Entity
 @Table(name = "budgets")
-class Budget {
+class BudgetEntity {
 
     @Id
     @OptIn(ExperimentalUuidApi::class)
-    var id: UUID = Uuid.generateV7().toJavaUuid()
-    var name: String = ""
-    var description: String = ""
+    val id: UUID = Uuid.generateV7().toJavaUuid()
+    lateinit var name: String
+    lateinit var description: String
 }

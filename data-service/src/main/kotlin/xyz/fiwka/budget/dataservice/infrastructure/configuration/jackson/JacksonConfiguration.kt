@@ -1,4 +1,4 @@
-package xyz.fiwka.budget.dataservice.configuration
+package xyz.fiwka.budget.dataservice.infrastructure.configuration.jackson
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

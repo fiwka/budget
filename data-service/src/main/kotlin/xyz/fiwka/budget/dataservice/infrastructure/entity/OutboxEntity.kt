@@ -1,4 +1,4 @@
-package xyz.fiwka.budget.dataservice.entity
+package xyz.fiwka.budget.dataservice.infrastructure.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -15,7 +15,7 @@ import kotlin.uuid.toJavaUuid
 
 @Entity
 @Table(name = "outbox")
-class Outbox {
+class OutboxEntity {
 
     @Id
     @OptIn(ExperimentalUuidApi::class)
