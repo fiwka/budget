@@ -10,6 +10,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation(project(":common"))
+    implementation(libs.springdoc.webmvc.ui)
     testImplementation("org.springframework.kafka:spring-kafka-test")
     runtimeOnly(libs.postgresql)
 }
