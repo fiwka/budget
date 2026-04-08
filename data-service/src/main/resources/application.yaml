@@ -16,3 +16,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://${EUREKA_SERVER}/eureka/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
