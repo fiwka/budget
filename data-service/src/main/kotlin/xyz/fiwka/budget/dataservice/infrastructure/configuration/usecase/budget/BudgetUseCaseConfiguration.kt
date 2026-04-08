@@ -2,6 +2,7 @@ package xyz.fiwka.budget.dataservice.infrastructure.configuration.usecase.budget
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.CreateBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.DeleteBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.ReadBudgetUseCase
@@ -28,14 +29,16 @@ class BudgetUseCaseConfiguration {
     @Bean
     fun updateBudgetUseCase(
         findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
-        updateBudgetOutputPort: UpdateBudgetOutputPort
+        updateBudgetOutputPort: UpdateBudgetOutputPort,
+        atomicOperationExecutor: AtomicOperationExecutor
     ): UpdateBudgetUseCase =
-        UpdateBudgetService(findBudgetByIdOutputPort, updateBudgetOutputPort)
+        UpdateBudgetService(findBudgetByIdOutputPort, updateBudgetOutputPort, atomicOperationExecutor)
 
     @Bean
     fun deleteBudgetUseCase(
         findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
-        deleteBudgetByIdOutputPort: DeleteBudgetByIdOutputPort
+        deleteBudgetByIdOutputPort: DeleteBudgetByIdOutputPort,
+        atomicOperationExecutor: AtomicOperationExecutor
     ): DeleteBudgetUseCase =
-        DeleteBudgetService(findBudgetByIdOutputPort, deleteBudgetByIdOutputPort)
+        DeleteBudgetService(findBudgetByIdOutputPort, deleteBudgetByIdOutputPort, atomicOperationExecutor)
 }
