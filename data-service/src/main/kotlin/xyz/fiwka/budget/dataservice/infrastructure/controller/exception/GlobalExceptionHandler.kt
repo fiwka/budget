@@ -3,6 +3,7 @@ package xyz.fiwka.budget.dataservice.infrastructure.controller.exception
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -18,7 +19,10 @@ class GlobalExceptionHandler {
     fun handleNotFound(exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.message)
 
-    @ExceptionHandler(BadRequestException::class)
+    @ExceptionHandler(
+        BadRequestException::class,
+        HttpMessageNotReadableException::class
+    )
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleBadRequest(exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.message)
