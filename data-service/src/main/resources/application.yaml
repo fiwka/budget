@@ -9,6 +9,9 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 eureka:
   client:
     service-url:

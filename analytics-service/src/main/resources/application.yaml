@@ -17,6 +17,9 @@ spring:
     listener:
       ack-mode: record
       concurrency: 3
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 eureka:
   client:
     service-url:
