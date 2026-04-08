@@ -1,4 +1,4 @@
-package xyz.fiwka.budget.analytics.configuration
+package xyz.fiwka.budget.analytics.configuration.kafka
 
 import org.apache.kafka.clients.admin.NewTopic
 import org.springframework.context.annotation.Bean

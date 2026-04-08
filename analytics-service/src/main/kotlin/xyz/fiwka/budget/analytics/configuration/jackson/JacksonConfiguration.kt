@@ -1,4 +1,4 @@
-package xyz.fiwka.budget.analytics.configuration
+package xyz.fiwka.budget.analytics.configuration.jackson
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
