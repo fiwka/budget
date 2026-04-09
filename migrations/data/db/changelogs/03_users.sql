@@ -1,6 +1,8 @@
 --liquibase formatted sql
 --changeset fiwka:03-users
 
+create extension if not exists "uuid-ossp";
+
 create table roles(
     id uuid primary key,
     key int not null,
@@ -9,15 +11,15 @@ create table roles(
     can_manage bool not null
 );
 
-insert into roles (key, can_view, can_edit, can_manage)
-values (0, true, false, false),
-       (1, true, true, false),
-       (2, true, true, true),
-       (3, true, true, true);
+insert into roles (id, key, can_view, can_edit, can_manage)
+values (uuidv4(), 0, true, false, false),
+       (uuidv4(), 1, true, true, false),
+       (uuidv4(), 2, true, true, true),
+       (uuidv4(), 3, true, true, true);
 
 create table budget_roles(
     id uuid primary key,
-    budget_id uuid not null references budget (id),
+    budget_id uuid not null references budgets (id),
     user_id text not null,
     role_id uuid not null references roles (id)
 );
