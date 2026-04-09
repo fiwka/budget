@@ -1,0 +1,72 @@
+package xyz.fiwka.budget.dataservice.infrastructure.controller.transaction
+
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionCommand
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ReadTransactionCommand
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ReadTransactionUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionCommand
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionUseCase
+import xyz.fiwka.budget.dataservice.infrastructure.dto.request.transaction.TransactionFieldsRequest
+import xyz.fiwka.budget.dataservice.infrastructure.mapper.TransactionMapper
+import java.util.UUID
+
+@RestController
+@RequestMapping("/api/transaction")
+class TransactionController(
+    private val transactionMapper: TransactionMapper,
+    private val createTransactionUseCase: CreateTransactionUseCase,
+    private val readTransactionUseCase: ReadTransactionUseCase,
+    private val updateTransactionUseCase: UpdateTransactionUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
+) {
+
+    @PostMapping
+    fun createTransaction(
+        @Valid @RequestBody transactionFieldsRequest: TransactionFieldsRequest,
+    ) =
+        transactionMapper.toDto(
+            createTransactionUseCase.execute(
+                transactionMapper.toCommand(transactionFieldsRequest)
+            ).transaction
+        )
+
+    @GetMapping("/{id}")
+    fun readTransaction(@PathVariable id: UUID) =
+        transactionMapper.toDto(readTransactionUseCase.execute(ReadTransactionCommand(id)).transaction)
+
+    @PutMapping("/{id}")
+    fun updateTransaction(
+        @PathVariable id: UUID,
+        @Valid @RequestBody transactionFieldsRequest: TransactionFieldsRequest,
+    ) =
+        transactionMapper.toDto(
+            updateTransactionUseCase.execute(
+                UpdateTransactionCommand(
+                    id = id,
+                    categoryId = transactionFieldsRequest.categoryId,
+                    completedDate = transactionFieldsRequest.completedDate,
+                    amount = transactionFieldsRequest.amount,
+                    appendix = transactionFieldsRequest.appendix,
+                )
+            ).transaction
+        )
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteTransaction(@PathVariable id: UUID) {
+        deleteTransactionUseCase.execute(DeleteTransactionCommand(id))
+    }
+}
+

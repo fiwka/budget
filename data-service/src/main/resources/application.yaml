@@ -8,7 +8,25 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     producer:
-      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL}
+  quartz:
+    auto-startup: true
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.scheduler.instanceName: data-service-quartz
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.scheduler.skipUpdateCheck: true
+      org.quartz.threadPool.threadCount: 5
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: true
+      org.quartz.jobStore.clusterCheckinInterval: 15000
+      org.quartz.jobStore.misfireThreshold: 60000
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -21,3 +39,16 @@ management:
     web:
       exposure:
         include: "*"
+logging:
+  level:
+    xyz.fiwka.budget.dataservice.infrastructure.scheduling: INFO
+    xyz.fiwka.budget.dataservice.application.service.outbox: INFO
+
+app:
+  kafka:
+    topic:
+      transaction-created: transaction-created
+  outbox:
+    batch-size: 100
+    scheduler:
+      cron: "0 */1 * * * ?"

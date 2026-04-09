@@ -11,12 +11,14 @@ spring:
       group-id: transaction-post-processing-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
-        spring.json.trusted.packages: "xyz.fiwka.budget.model.*"
+        specific.avro.reader: true
     listener:
       ack-mode: record
       concurrency: 3
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL}
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

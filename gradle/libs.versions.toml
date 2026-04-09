@@ -10,6 +10,9 @@ springCloud = "2025.1.0"
 postgresql = "42.7.10"
 mapstruct = "1.6.3"
 springdoc = "3.0.2"
+confluent = "8.2.0"
+avro = "1.12.1"
+avro-plugin = "1.9.1"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -21,3 +24,9 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+confluent-avro-serializer = { module = "io.confluent:kafka-avro-serializer", version.ref = "confluent" }
+confluent-schema-registry-client = { module = "io.confluent:kafka-schema-registry-client", version.ref = "confluent" }
+apache-avro = { module = "org.apache.avro:avro", version.ref = "avro" }
+
+[plugins]
+avro-plugin = { id = "com.github.davidmc24.gradle.plugin.avro", version.ref = "avro-plugin" }

@@ -1,0 +1,39 @@
+{
+  "type": "record",
+  "name": "TransactionCreatedEvent",
+  "namespace": "xyz.fiwka.budget.model.event.transaction",
+  "fields": [
+    {
+      "name": "transactionId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "categoryId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "completedDate",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "amount",
+      "type": "string"
+    },
+    {
+      "name": "appendix",
+      "type": {
+        "type": "string",
+        "logicalType": "json"
+      }
+    }
+  ]
+}

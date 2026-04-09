@@ -9,7 +9,7 @@ import org.springframework.kafka.config.TopicBuilder
 class KafkaConfiguration {
 
     @Bean
-    fun outboxTransactionEventTopic(): NewTopic = TopicBuilder.name("outbox.transaction-created")
+    fun transactionCreatedEventTopic(): NewTopic = TopicBuilder.name("transaction-created")
         .partitions(1)
         .replicas(1)
         .build()
