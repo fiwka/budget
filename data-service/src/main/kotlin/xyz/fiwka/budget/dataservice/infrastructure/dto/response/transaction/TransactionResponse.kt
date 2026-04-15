@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.infrastructure.dto.response.transaction
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID

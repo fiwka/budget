@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.application.port.`in`.transaction
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import xyz.fiwka.budget.dataservice.domain.transaction.Transaction
 import xyz.fiwka.budget.port.Port
 import java.math.BigDecimal

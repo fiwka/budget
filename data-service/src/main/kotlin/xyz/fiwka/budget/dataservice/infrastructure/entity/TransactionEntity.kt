@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.infrastructure.entity
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

@@ -1,8 +1,8 @@
 package xyz.fiwka.budget.dataservice.application.service.outbox
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
 import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionCreatedOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.DeleteOutboxMessagesByIdsOutputPort
@@ -17,7 +17,9 @@ class PublishOutboxMessagesServiceTest {
 
     @Test
     fun `should publish transaction created messages and delete from outbox`() {
-        val objectMapper = ObjectMapper()
+        val jsonMapper = JsonMapper.builder()
+            .findAndAddModules()
+            .build()
         val messageId = UUID.randomUUID()
         val payload = TransactionCreatedOutboxPayload(
             transactionId = UUID.randomUUID(),
@@ -34,7 +36,7 @@ class PublishOutboxMessagesServiceTest {
                         id = messageId,
                         type = OutboxTypes.TRANSACTION_CREATED_EVENT,
                         topic = "transaction-created",
-                        payload = objectMapper.valueToTree(payload),
+                        payload = jsonMapper.valueToTree(payload),
                         createdAt = Instant.now(),
                     )
                 )
@@ -59,7 +61,7 @@ class PublishOutboxMessagesServiceTest {
             findOutboxMessagesBatchOutputPort = findBatchPort,
             publishTransactionCreatedEventOutputPort = publishPort,
             deleteOutboxMessagesByIdsOutputPort = deletePort,
-            objectMapper = objectMapper,
+            jsonMapper = jsonMapper,
             batchSize = 50,
         )
 

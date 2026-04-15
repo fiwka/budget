@@ -1,9 +1,9 @@
 package xyz.fiwka.budget.dataservice.infrastructure.configuration.usecase.transaction
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import tools.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionUseCase
@@ -28,7 +28,7 @@ class TransactionUseCaseConfiguration {
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         saveTransactionOutputPort: SaveTransactionOutputPort,
         saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
-        objectMapper: ObjectMapper,
+        jsonMapper: JsonMapper,
         @Value("\${app.kafka.topic.transaction-created:transaction-created}") transactionCreatedTopic: String,
         atomicOperationExecutor: AtomicOperationExecutor,
     ): CreateTransactionUseCase =
@@ -36,7 +36,7 @@ class TransactionUseCaseConfiguration {
             findCategoryByIdOutputPort,
             saveTransactionOutputPort,
             saveOutboxMessageOutputPort,
-            objectMapper,
+            jsonMapper,
             transactionCreatedTopic,
             atomicOperationExecutor,
         )

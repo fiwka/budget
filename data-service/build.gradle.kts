@@ -16,7 +16,12 @@ dependencies {
     implementation(libs.mapstruct)
     implementation(libs.springdoc.webmvc.ui)
     implementation(project(":common"))
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.7")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.7")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.7")
     runtimeOnly(libs.postgresql)
     kapt(libs.mapstruct.processor)
 }

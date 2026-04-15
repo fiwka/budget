@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.application.service.transaction
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.exception.category.CategoryNotFoundException
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
@@ -18,7 +18,7 @@ class CreateTransactionService(
     private val findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
     private val saveTransactionOutputPort: SaveTransactionOutputPort,
     private val saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
-    private val objectMapper: ObjectMapper,
+    private val jsonMapper: JsonMapper,
     private val transactionCreatedTopic: String,
     private val atomicOperationExecutor: AtomicOperationExecutor,
 ) : CreateTransactionUseCase {
@@ -43,7 +43,7 @@ class CreateTransactionService(
                     id = null,
                     type = OutboxTypes.TRANSACTION_CREATED_EVENT,
                     topic = transactionCreatedTopic,
-                    payload = objectMapper.valueToTree(TransactionCreatedOutboxPayload.fromTransaction(transaction)),
+                    payload = jsonMapper.valueToTree(TransactionCreatedOutboxPayload.fromTransaction(transaction)),
                 )
             )
 

@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import xyz.fiwka.budget.dataservice.application.exception.type.BadRequestException
+import xyz.fiwka.budget.dataservice.application.exception.type.ConflictException
 import xyz.fiwka.budget.dataservice.application.exception.type.NotFoundException
+import xyz.fiwka.budget.dataservice.application.exception.type.UnauthorizedException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -26,6 +28,16 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleBadRequest(exception: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.message)
+
+    @ExceptionHandler(ConflictException::class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    fun handleConflict(exception: RuntimeException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.message)
+
+    @ExceptionHandler(UnauthorizedException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun handleUnauthorized(exception: RuntimeException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, exception.message)
 
     @ExceptionHandler(
         MethodArgumentNotValidException::class

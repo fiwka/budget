@@ -45,6 +45,10 @@ logging:
     xyz.fiwka.budget.dataservice.application.service.outbox: INFO
 
 app:
+  security:
+    jwt:
+      secret: ${APP_JWT_SECRET:change-this-secret-key-to-at-least-32-characters}
+      expiration-ms: ${APP_JWT_EXPIRATION_MS:3600000}
   kafka:
     topic:
       transaction-created: transaction-created

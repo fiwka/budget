@@ -1,7 +1,7 @@
 package xyz.fiwka.budget.dataservice.application.service.outbox
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
 import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionCreatedOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.`in`.outbox.PublishOutboxMessagesUseCase
@@ -14,7 +14,7 @@ class PublishOutboxMessagesService(
     private val findOutboxMessagesBatchOutputPort: FindOutboxMessagesBatchOutputPort,
     private val publishTransactionCreatedEventOutputPort: PublishTransactionCreatedEventOutputPort,
     private val deleteOutboxMessagesByIdsOutputPort: DeleteOutboxMessagesByIdsOutputPort,
-    private val objectMapper: ObjectMapper,
+    private val jsonMapper: JsonMapper,
     private val batchSize: Int,
 ) : PublishOutboxMessagesUseCase {
 
@@ -35,7 +35,7 @@ class PublishOutboxMessagesService(
                     return@runCatching
                 }
 
-                val payload = objectMapper.treeToValue(message.payload, TransactionCreatedOutboxPayload::class.java)
+                val payload = jsonMapper.treeToValue(message.payload, TransactionCreatedOutboxPayload::class.java)
                 publishTransactionCreatedEventOutputPort.execute(
                     PublishTransactionCreatedEventCommand(
                         topic = message.topic,

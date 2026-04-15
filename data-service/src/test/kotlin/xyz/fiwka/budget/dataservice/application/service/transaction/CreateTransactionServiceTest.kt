@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.application.service.transaction
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -61,7 +61,7 @@ class CreateTransactionServiceTest {
             findCategoryByIdOutputPort = findCategoryPort,
             saveTransactionOutputPort = saveTransactionPort,
             saveOutboxMessageOutputPort = saveOutboxPort,
-            objectMapper = ObjectMapper(),
+            jsonMapper = JsonMapper(),
             transactionCreatedTopic = "transaction-created",
             atomicOperationExecutor = object : AtomicOperationExecutor {
                 override fun <T> execute(operation: () -> T): T = operation()
@@ -81,7 +81,7 @@ class CreateTransactionServiceTest {
         assertNotNull(savedOutbox)
         assertEquals(OutboxTypes.TRANSACTION_CREATED_EVENT, savedOutbox!!.type)
         assertEquals("transaction-created", savedOutbox.topic)
-        assertEquals(transactionId.toString(), savedOutbox.payload.get("transactionId").asText())
+        assertEquals(transactionId.toString(), savedOutbox.payload.get("transactionId").asText(""))
     }
 }
 

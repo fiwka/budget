@@ -3,9 +3,16 @@
 
 create extension if not exists "uuid-ossp";
 
+create table users(
+    id uuid primary key,
+    username text not null unique,
+    email text not null unique,
+    password_hash text not null
+);
+
 create table roles(
     id uuid primary key,
-    key int not null,
+    key int not null unique,
     can_view bool not null,
     can_edit bool not null,
     can_manage bool not null
@@ -20,6 +27,6 @@ values (uuidv4(), 0, true, false, false),
 create table budget_roles(
     id uuid primary key,
     budget_id uuid not null references budgets (id),
-    user_id text not null,
+    user_id uuid not null references users (id),
     role_id uuid not null references roles (id)
 );
