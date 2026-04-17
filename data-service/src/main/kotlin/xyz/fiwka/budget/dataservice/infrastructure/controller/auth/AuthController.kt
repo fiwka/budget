@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import xyz.fiwka.budget.dataservice.application.port.`in`.auth.LoginCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.auth.LoginUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.auth.RefreshTokenCommand
+import xyz.fiwka.budget.dataservice.application.port.`in`.auth.RefreshTokenUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.auth.RegisterCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.auth.RegisterUseCase
 import xyz.fiwka.budget.dataservice.infrastructure.dto.request.auth.LoginRequest
+import xyz.fiwka.budget.dataservice.infrastructure.dto.request.auth.RefreshTokenRequest
 import xyz.fiwka.budget.dataservice.infrastructure.dto.request.auth.RegisterRequest
 import xyz.fiwka.budget.dataservice.infrastructure.dto.response.auth.AuthTokenResponse
 import xyz.fiwka.budget.dataservice.infrastructure.dto.response.auth.RegisterResponse
@@ -20,7 +23,8 @@ import xyz.fiwka.budget.dataservice.infrastructure.dto.response.auth.RegisterRes
 @RequestMapping("/api/auth")
 class AuthController(
     private val registerUseCase: RegisterUseCase,
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val refreshTokenUseCase: RefreshTokenUseCase
 ) {
 
     @PostMapping("/register")
@@ -33,7 +37,13 @@ class AuthController(
     @PostMapping("/login")
     fun login(@Valid @RequestBody request: LoginRequest): AuthTokenResponse {
         val response = loginUseCase.execute(LoginCommand(request.login, request.password))
-        return AuthTokenResponse(response.accessToken, response.tokenType)
+        return AuthTokenResponse(response.accessToken, response.refreshToken, response.tokenType)
+    }
+
+    @PostMapping("/refresh")
+    fun refresh(@Valid @RequestBody request: RefreshTokenRequest): AuthTokenResponse {
+        val response = refreshTokenUseCase.execute(RefreshTokenCommand(request.refreshToken))
+        return AuthTokenResponse(response.accessToken, response.refreshToken, response.tokenType)
     }
 }
 
