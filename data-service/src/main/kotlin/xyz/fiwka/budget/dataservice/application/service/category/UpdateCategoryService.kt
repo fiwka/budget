@@ -10,17 +10,22 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.category.UpdateCategor
 import xyz.fiwka.budget.dataservice.application.port.out.budget.FindBudgetByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.category.FindCategoryByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.category.UpdateCategoryOutputPort
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
+import xyz.fiwka.budget.dataservice.domain.budget.BudgetPermission
 
 class UpdateCategoryService(
     private val findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
     private val findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
     private val updateCategoryOutputPort: UpdateCategoryOutputPort,
+    private val budgetAccessGuard: BudgetAccessGuard,
     private val atomicOperationExecutor: AtomicOperationExecutor
 ) : UpdateCategoryUseCase {
     override fun execute(request: UpdateCategoryCommand): UpdateCategoryResponse =
         atomicOperationExecutor.execute {
             val category = findCategoryByIdOutputPort.execute(request.id)
                 ?: throw CategoryNotFoundException(request.id)
+
+            budgetAccessGuard.requireBudgetPermission(request.actorLogin, category.budgetId, BudgetPermission.EDIT)
 
             val budget = findBudgetByIdOutputPort.execute(request.budgetId)
                 ?: throw BudgetNotFoundException(request.budgetId)

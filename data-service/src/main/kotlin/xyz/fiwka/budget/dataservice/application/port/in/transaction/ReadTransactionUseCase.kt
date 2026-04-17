@@ -6,8 +6,10 @@ import java.util.UUID
 
 interface ReadTransactionUseCase : Port<ReadTransactionCommand, ReadTransactionResponse>
 
-@JvmInline
-value class ReadTransactionCommand(val id: UUID)
+data class ReadTransactionCommand(
+	val id: UUID,
+	val actorLogin: String,
+)
 
 @JvmInline
 value class ReadTransactionResponse(val transaction: Transaction)

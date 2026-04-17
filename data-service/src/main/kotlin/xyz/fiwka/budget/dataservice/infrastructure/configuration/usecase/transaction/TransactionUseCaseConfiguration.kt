@@ -19,6 +19,7 @@ import xyz.fiwka.budget.dataservice.application.service.transaction.CreateTransa
 import xyz.fiwka.budget.dataservice.application.service.transaction.DeleteTransactionService
 import xyz.fiwka.budget.dataservice.application.service.transaction.ReadTransactionService
 import xyz.fiwka.budget.dataservice.application.service.transaction.UpdateTransactionService
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
 
 @Configuration
 class TransactionUseCaseConfiguration {
@@ -28,6 +29,7 @@ class TransactionUseCaseConfiguration {
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         saveTransactionOutputPort: SaveTransactionOutputPort,
         saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         jsonMapper: JsonMapper,
         @Value("\${app.kafka.topic.transaction-created:transaction-created}") transactionCreatedTopic: String,
         atomicOperationExecutor: AtomicOperationExecutor,
@@ -36,35 +38,50 @@ class TransactionUseCaseConfiguration {
             findCategoryByIdOutputPort,
             saveTransactionOutputPort,
             saveOutboxMessageOutputPort,
+            budgetAccessGuard,
             jsonMapper,
             transactionCreatedTopic,
             atomicOperationExecutor,
         )
 
     @Bean
-    fun readTransactionUseCase(findTransactionByIdOutputPort: FindTransactionByIdOutputPort): ReadTransactionUseCase =
-        ReadTransactionService(findTransactionByIdOutputPort)
+    fun readTransactionUseCase(
+        findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
+        findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
+    ): ReadTransactionUseCase =
+        ReadTransactionService(findTransactionByIdOutputPort, findCategoryByIdOutputPort, budgetAccessGuard)
 
     @Bean
     fun updateTransactionUseCase(
         findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         updateTransactionOutputPort: UpdateTransactionOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor,
     ): UpdateTransactionUseCase =
         UpdateTransactionService(
             findTransactionByIdOutputPort,
             findCategoryByIdOutputPort,
             updateTransactionOutputPort,
+            budgetAccessGuard,
             atomicOperationExecutor,
         )
 
     @Bean
     fun deleteTransactionUseCase(
         findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
+        findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         deleteTransactionByIdOutputPort: DeleteTransactionByIdOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor,
     ): DeleteTransactionUseCase =
-        DeleteTransactionService(findTransactionByIdOutputPort, deleteTransactionByIdOutputPort, atomicOperationExecutor)
+        DeleteTransactionService(
+            findTransactionByIdOutputPort,
+            findCategoryByIdOutputPort,
+            deleteTransactionByIdOutputPort,
+            budgetAccessGuard,
+            atomicOperationExecutor,
+        )
 }
 

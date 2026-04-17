@@ -8,6 +8,7 @@ import xyz.fiwka.budget.dataservice.application.exception.type.UnauthorizedExcep
 import xyz.fiwka.budget.dataservice.application.port.`in`.auth.LoginCommand
 import xyz.fiwka.budget.dataservice.application.port.out.auth.FindUserByLoginOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.auth.GenerateJwtTokenOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.auth.GenerateRefreshTokenOutputPort
 import xyz.fiwka.budget.dataservice.domain.user.User
 import java.util.UUID
 
@@ -31,10 +32,15 @@ class LoginServiceTest {
             override fun execute(request: User): String = "jwt-token"
         }
 
-        val service = LoginService(findUserPort, tokenPort, passwordEncoder)
+        val refreshTokenPort = object : GenerateRefreshTokenOutputPort {
+            override fun generateRefreshToken(user: User): String = "refresh-token"
+        }
+
+        val service = LoginService(findUserPort, tokenPort, refreshTokenPort, passwordEncoder)
         val response = service.execute(LoginCommand("alex", "Password123"))
 
         assertEquals("jwt-token", response.accessToken)
+        assertEquals("refresh-token", response.refreshToken)
         assertEquals("Bearer", response.tokenType)
     }
 
@@ -49,7 +55,11 @@ class LoginServiceTest {
             override fun execute(request: User): String = "jwt-token"
         }
 
-        val service = LoginService(findUserPort, tokenPort, passwordEncoder)
+        val refreshTokenPort = object : GenerateRefreshTokenOutputPort {
+            override fun generateRefreshToken(user: User): String = "refresh-token"
+        }
+
+        val service = LoginService(findUserPort, tokenPort, refreshTokenPort, passwordEncoder)
 
         assertThrows<UnauthorizedException> {
             service.execute(LoginCommand("alex", "Password123"))

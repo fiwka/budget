@@ -9,11 +9,14 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTran
 import xyz.fiwka.budget.dataservice.application.port.out.category.FindCategoryByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.FindTransactionByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.UpdateTransactionOutputPort
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
+import xyz.fiwka.budget.dataservice.domain.budget.BudgetPermission
 
 class UpdateTransactionService(
     private val findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
     private val findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
     private val updateTransactionOutputPort: UpdateTransactionOutputPort,
+    private val budgetAccessGuard: BudgetAccessGuard,
     private val atomicOperationExecutor: AtomicOperationExecutor,
 ) : UpdateTransactionUseCase {
     override fun execute(request: UpdateTransactionCommand): UpdateTransactionResponse =
@@ -21,8 +24,17 @@ class UpdateTransactionService(
             val transaction = findTransactionByIdOutputPort.execute(request.id)
                 ?: throw TransactionNotFoundException(request.id)
 
-            findCategoryByIdOutputPort.execute(request.categoryId)
+            val currentCategory = findCategoryByIdOutputPort.execute(transaction.categoryId)
+                ?: throw CategoryNotFoundException(transaction.categoryId)
+
+            val targetCategory = findCategoryByIdOutputPort.execute(request.categoryId)
                 ?: throw CategoryNotFoundException(request.categoryId)
+
+            budgetAccessGuard.requireBudgetPermission(request.actorLogin, currentCategory.budgetId, BudgetPermission.EDIT)
+
+            if (targetCategory.budgetId != currentCategory.budgetId) {
+                budgetAccessGuard.requireBudgetPermission(request.actorLogin, targetCategory.budgetId, BudgetPermission.EDIT)
+            }
 
             transaction.update(
                 categoryId = request.categoryId,

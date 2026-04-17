@@ -10,7 +10,8 @@ data class UpdateCategoryCommand(
     val id: UUID,
     val budgetId: UUID,
     val name: String,
-    val isConsumption: Boolean
+    val isConsumption: Boolean,
+    val actorLogin: String,
 )
 
 @JvmInline

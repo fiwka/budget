@@ -7,7 +7,8 @@ import java.util.UUID
 interface ReadBudgetUseCase : Port<ReadBudgetCommand, ReadBudgetResponse>
 
 data class ReadBudgetCommand(
-    val id: UUID
+    val id: UUID,
+    val actorLogin: String,
 )
 
 @JvmInline

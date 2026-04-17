@@ -7,14 +7,19 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.category.CreateCategor
 import xyz.fiwka.budget.dataservice.application.port.`in`.category.CreateCategoryUseCase
 import xyz.fiwka.budget.dataservice.application.port.out.budget.FindBudgetByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.category.SaveCategoryOutputPort
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
+import xyz.fiwka.budget.dataservice.domain.budget.BudgetPermission
 
 class CreateCategoryService(
     private val findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
     private val saveCategoryOutputPort: SaveCategoryOutputPort,
+    private val budgetAccessGuard: BudgetAccessGuard,
     private val atomicOperationExecutor: AtomicOperationExecutor
 ) : CreateCategoryUseCase {
     override fun execute(request: CreateCategoryCommand): CreateCategoryResponse =
         atomicOperationExecutor.execute {
+            budgetAccessGuard.requireBudgetPermission(request.actorLogin, request.budgetId, BudgetPermission.EDIT)
+
             val budget = findBudgetByIdOutputPort.execute(request.budgetId)
                 ?: throw BudgetNotFoundException(request.budgetId)
 

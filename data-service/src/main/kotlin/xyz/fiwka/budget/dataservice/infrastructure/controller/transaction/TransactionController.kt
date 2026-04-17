@@ -2,6 +2,7 @@ package xyz.fiwka.budget.dataservice.infrastructure.controller.transaction
 
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionUseCase
@@ -35,21 +37,29 @@ class TransactionController(
     @PostMapping
     fun createTransaction(
         @Valid @RequestBody transactionFieldsRequest: TransactionFieldsRequest,
+        authentication: Authentication,
     ) =
         transactionMapper.toDto(
             createTransactionUseCase.execute(
-                transactionMapper.toCommand(transactionFieldsRequest)
+                CreateTransactionCommand(
+                    categoryId = transactionFieldsRequest.categoryId,
+                    completedDate = transactionFieldsRequest.completedDate,
+                    amount = transactionFieldsRequest.amount,
+                    actorLogin = authentication.name,
+                    appendix = transactionFieldsRequest.appendix,
+                )
             ).transaction
         )
 
     @GetMapping("/{id}")
-    fun readTransaction(@PathVariable id: UUID) =
-        transactionMapper.toDto(readTransactionUseCase.execute(ReadTransactionCommand(id)).transaction)
+    fun readTransaction(@PathVariable id: UUID, authentication: Authentication) =
+        transactionMapper.toDto(readTransactionUseCase.execute(ReadTransactionCommand(id, authentication.name)).transaction)
 
     @PutMapping("/{id}")
     fun updateTransaction(
         @PathVariable id: UUID,
         @Valid @RequestBody transactionFieldsRequest: TransactionFieldsRequest,
+        authentication: Authentication,
     ) =
         transactionMapper.toDto(
             updateTransactionUseCase.execute(
@@ -58,6 +68,7 @@ class TransactionController(
                     categoryId = transactionFieldsRequest.categoryId,
                     completedDate = transactionFieldsRequest.completedDate,
                     amount = transactionFieldsRequest.amount,
+                    actorLogin = authentication.name,
                     appendix = transactionFieldsRequest.appendix,
                 )
             ).transaction
@@ -65,8 +76,8 @@ class TransactionController(
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteTransaction(@PathVariable id: UUID) {
-        deleteTransactionUseCase.execute(DeleteTransactionCommand(id))
+    fun deleteTransaction(@PathVariable id: UUID, authentication: Authentication) {
+        deleteTransactionUseCase.execute(DeleteTransactionCommand(id, authentication.name))
     }
 }
 

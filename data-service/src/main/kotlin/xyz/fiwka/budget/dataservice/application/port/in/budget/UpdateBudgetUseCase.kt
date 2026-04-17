@@ -9,7 +9,8 @@ interface UpdateBudgetUseCase : Port<UpdateBudgetCommand, UpdateBudgetResponse>
 data class UpdateBudgetCommand(
     val id: UUID,
     val name: String,
-    val description: String
+    val description: String,
+    val actorLogin: String,
 )
 
 @JvmInline

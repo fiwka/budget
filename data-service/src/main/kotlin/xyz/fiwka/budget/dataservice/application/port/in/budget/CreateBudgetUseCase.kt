@@ -7,7 +7,8 @@ interface CreateBudgetUseCase : Port<CreateBudgetCommand, CreateBudgetResponse>
 
 data class CreateBudgetCommand(
     val name: String,
-    val description: String
+    val description: String,
+    val actorLogin: String,
 )
 
 @JvmInline

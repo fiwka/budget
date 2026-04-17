@@ -6,6 +6,7 @@ import java.util.UUID
 interface DeleteCategoryUseCase : Port<DeleteCategoryCommand, Unit>
 
 data class DeleteCategoryCommand(
-    val id: UUID
+    val id: UUID,
+    val actorLogin: String,
 )
 

@@ -11,6 +11,8 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTran
 import xyz.fiwka.budget.dataservice.application.port.out.category.FindCategoryByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.SaveOutboxMessageOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.SaveTransactionOutputPort
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
+import xyz.fiwka.budget.dataservice.domain.budget.BudgetPermission
 import xyz.fiwka.budget.dataservice.domain.outbox.OutboxMessage
 import xyz.fiwka.budget.dataservice.domain.transaction.Transaction
 
@@ -18,6 +20,7 @@ class CreateTransactionService(
     private val findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
     private val saveTransactionOutputPort: SaveTransactionOutputPort,
     private val saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
+    private val budgetAccessGuard: BudgetAccessGuard,
     private val jsonMapper: JsonMapper,
     private val transactionCreatedTopic: String,
     private val atomicOperationExecutor: AtomicOperationExecutor,
@@ -25,8 +28,10 @@ class CreateTransactionService(
 
     override fun execute(request: CreateTransactionCommand): CreateTransactionResponse =
         atomicOperationExecutor.execute {
-            findCategoryByIdOutputPort.execute(request.categoryId)
+            val category = findCategoryByIdOutputPort.execute(request.categoryId)
                 ?: throw CategoryNotFoundException(request.categoryId)
+
+            budgetAccessGuard.requireBudgetPermission(request.actorLogin, category.budgetId, BudgetPermission.EDIT)
 
             val transaction = saveTransactionOutputPort.execute(
                 Transaction(

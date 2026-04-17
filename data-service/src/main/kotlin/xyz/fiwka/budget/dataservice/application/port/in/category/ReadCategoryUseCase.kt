@@ -7,7 +7,8 @@ import java.util.UUID
 interface ReadCategoryUseCase : Port<ReadCategoryCommand, ReadCategoryResponse>
 
 data class ReadCategoryCommand(
-    val id: UUID
+    val id: UUID,
+    val actorLogin: String,
 )
 
 @JvmInline

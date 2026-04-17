@@ -7,15 +7,20 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.budget.UpdateBudgetRes
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.UpdateBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.out.budget.FindBudgetByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.UpdateBudgetOutputPort
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
 import xyz.fiwka.budget.dataservice.domain.budget.Budget
+import xyz.fiwka.budget.dataservice.domain.budget.BudgetPermission
 
 class UpdateBudgetService(
     private val findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
     private val updateBudgetOutputPort: UpdateBudgetOutputPort,
+    private val budgetAccessGuard: BudgetAccessGuard,
     private val atomicOperationExecutor: AtomicOperationExecutor
 ) : UpdateBudgetUseCase {
     override fun execute(request: UpdateBudgetCommand): UpdateBudgetResponse =
         atomicOperationExecutor.execute {
+            budgetAccessGuard.requireBudgetPermission(request.actorLogin, request.id, BudgetPermission.EDIT)
+
             findBudgetByIdOutputPort.execute(request.id)
                 ?: throw BudgetNotFoundException(request.id)
 

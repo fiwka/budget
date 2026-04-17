@@ -16,6 +16,7 @@ import xyz.fiwka.budget.dataservice.application.service.category.CreateCategoryS
 import xyz.fiwka.budget.dataservice.application.service.category.DeleteCategoryService
 import xyz.fiwka.budget.dataservice.application.service.category.ReadCategoryService
 import xyz.fiwka.budget.dataservice.application.service.category.UpdateCategoryService
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
 
 @Configuration
 class CategoryUseCaseConfiguration {
@@ -24,25 +25,31 @@ class CategoryUseCaseConfiguration {
     fun createCategoryUseCase(
         findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
         saveCategoryOutputPort: SaveCategoryOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor
     ): CreateCategoryUseCase =
-        CreateCategoryService(findBudgetByIdOutputPort, saveCategoryOutputPort, atomicOperationExecutor)
+        CreateCategoryService(findBudgetByIdOutputPort, saveCategoryOutputPort, budgetAccessGuard, atomicOperationExecutor)
 
     @Bean
-    fun readCategoryUseCase(findCategoryByIdOutputPort: FindCategoryByIdOutputPort): ReadCategoryUseCase =
-        ReadCategoryService(findCategoryByIdOutputPort)
+    fun readCategoryUseCase(
+        findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
+    ): ReadCategoryUseCase =
+        ReadCategoryService(findCategoryByIdOutputPort, budgetAccessGuard)
 
     @Bean
     fun updateCategoryUseCase(
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
         updateCategoryOutputPort: UpdateCategoryOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor
     ): UpdateCategoryUseCase =
         UpdateCategoryService(
             findCategoryByIdOutputPort,
             findBudgetByIdOutputPort,
             updateCategoryOutputPort,
+            budgetAccessGuard,
             atomicOperationExecutor
         )
 
@@ -50,7 +57,8 @@ class CategoryUseCaseConfiguration {
     fun deleteCategoryUseCase(
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         deleteCategoryByIdOutputPort: DeleteCategoryByIdOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor
     ): DeleteCategoryUseCase =
-        DeleteCategoryService(findCategoryByIdOutputPort, deleteCategoryByIdOutputPort, atomicOperationExecutor)
+        DeleteCategoryService(findCategoryByIdOutputPort, deleteCategoryByIdOutputPort, budgetAccessGuard, atomicOperationExecutor)
 }

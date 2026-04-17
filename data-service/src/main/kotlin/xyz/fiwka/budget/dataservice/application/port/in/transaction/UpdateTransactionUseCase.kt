@@ -14,6 +14,7 @@ data class UpdateTransactionCommand(
     val categoryId: UUID,
     val completedDate: Instant,
     val amount: BigDecimal,
+    val actorLogin: String,
     val appendix: JsonNode? = null,
 )
 

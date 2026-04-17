@@ -5,6 +5,8 @@ import java.util.UUID
 
 interface DeleteTransactionUseCase : Port<DeleteTransactionCommand, Unit>
 
-@JvmInline
-value class DeleteTransactionCommand(val id: UUID)
+data class DeleteTransactionCommand(
+	val id: UUID,
+	val actorLogin: String,
+)
 

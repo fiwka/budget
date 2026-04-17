@@ -6,6 +6,7 @@ import java.util.UUID
 interface DeleteBudgetUseCase : Port<DeleteBudgetCommand, Unit>
 
 data class DeleteBudgetCommand(
-    val id: UUID
+    val id: UUID,
+    val actorLogin: String,
 )
 

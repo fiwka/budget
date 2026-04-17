@@ -9,7 +9,8 @@ interface CreateCategoryUseCase : Port<CreateCategoryCommand, CreateCategoryResp
 data class CreateCategoryCommand(
     val budgetId: UUID,
     val name: String,
-    val isConsumption: Boolean
+    val isConsumption: Boolean,
+    val actorLogin: String,
 )
 
 @JvmInline

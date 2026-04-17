@@ -2,6 +2,7 @@ package xyz.fiwka.budget.dataservice.infrastructure.controller.category
 
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import xyz.fiwka.budget.dataservice.application.port.`in`.category.CreateCategoryCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.category.CreateCategoryUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.category.DeleteCategoryCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.category.DeleteCategoryUseCase
@@ -34,22 +36,29 @@ class CategoryController(
 
     @PostMapping
     fun createCategory(
-        @Valid @RequestBody categoryFieldsRequest: CategoryFieldsRequest
+        @Valid @RequestBody categoryFieldsRequest: CategoryFieldsRequest,
+        authentication: Authentication,
     ) =
         categoryMapper.toDto(
             createCategoryUseCase.execute(
-                categoryMapper.toCommand(categoryFieldsRequest)
+                CreateCategoryCommand(
+                    budgetId = categoryFieldsRequest.budgetId,
+                    name = categoryFieldsRequest.name,
+                    isConsumption = categoryFieldsRequest.isConsumption,
+                    actorLogin = authentication.name,
+                )
             ).category
         )
 
     @GetMapping("/{id}")
-    fun readCategory(@PathVariable id: UUID) =
-        categoryMapper.toDto(readCategoryUseCase.execute(ReadCategoryCommand(id)).category)
+    fun readCategory(@PathVariable id: UUID, authentication: Authentication) =
+        categoryMapper.toDto(readCategoryUseCase.execute(ReadCategoryCommand(id, authentication.name)).category)
 
     @PutMapping("/{id}")
     fun updateCategory(
         @PathVariable id: UUID,
-        @Valid @RequestBody categoryFieldsRequest: CategoryFieldsRequest
+        @Valid @RequestBody categoryFieldsRequest: CategoryFieldsRequest,
+        authentication: Authentication,
     ) =
         categoryMapper.toDto(
             updateCategoryUseCase.execute(
@@ -57,15 +66,16 @@ class CategoryController(
                     id,
                     categoryFieldsRequest.budgetId,
                     categoryFieldsRequest.name,
-                    categoryFieldsRequest.isConsumption
+                    categoryFieldsRequest.isConsumption,
+                    authentication.name,
                 )
             ).category
         )
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteCategory(@PathVariable id: UUID) {
-        deleteCategoryUseCase.execute(DeleteCategoryCommand(id))
+    fun deleteCategory(@PathVariable id: UUID, authentication: Authentication) {
+        deleteCategoryUseCase.execute(DeleteCategoryCommand(id, authentication.name))
     }
 }
 

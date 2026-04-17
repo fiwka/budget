@@ -7,10 +7,13 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.budget.CreateBudgetUse
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.DeleteBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.ReadBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.UpdateBudgetUseCase
+import xyz.fiwka.budget.dataservice.application.port.out.access.SaveBudgetRoleForUserOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.auth.FindUserByLoginOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.DeleteBudgetByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.FindBudgetByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.SaveBudgetOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.UpdateBudgetOutputPort
+import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
 import xyz.fiwka.budget.dataservice.application.service.budget.CreateBudgetService
 import xyz.fiwka.budget.dataservice.application.service.budget.DeleteBudgetService
 import xyz.fiwka.budget.dataservice.application.service.budget.ReadBudgetService
@@ -19,26 +22,41 @@ import xyz.fiwka.budget.dataservice.application.service.budget.UpdateBudgetServi
 @Configuration
 class BudgetUseCaseConfiguration {
     @Bean
-    fun createBudgetUseCase(saveBudgetOutputPort: SaveBudgetOutputPort): CreateBudgetUseCase =
-        CreateBudgetService(saveBudgetOutputPort)
+    fun createBudgetUseCase(
+        saveBudgetOutputPort: SaveBudgetOutputPort,
+        findUserByLoginOutputPort: FindUserByLoginOutputPort,
+        saveBudgetRoleForUserOutputPort: SaveBudgetRoleForUserOutputPort,
+        atomicOperationExecutor: AtomicOperationExecutor,
+    ): CreateBudgetUseCase =
+        CreateBudgetService(
+            saveBudgetOutputPort,
+            findUserByLoginOutputPort,
+            saveBudgetRoleForUserOutputPort,
+            atomicOperationExecutor,
+        )
 
     @Bean
-    fun readBudgetUseCase(findBudgetByIdOutputPort: FindBudgetByIdOutputPort): ReadBudgetUseCase =
-        ReadBudgetService(findBudgetByIdOutputPort)
+    fun readBudgetUseCase(
+        findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
+    ): ReadBudgetUseCase =
+        ReadBudgetService(findBudgetByIdOutputPort, budgetAccessGuard)
 
     @Bean
     fun updateBudgetUseCase(
         findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
         updateBudgetOutputPort: UpdateBudgetOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor
     ): UpdateBudgetUseCase =
-        UpdateBudgetService(findBudgetByIdOutputPort, updateBudgetOutputPort, atomicOperationExecutor)
+        UpdateBudgetService(findBudgetByIdOutputPort, updateBudgetOutputPort, budgetAccessGuard, atomicOperationExecutor)
 
     @Bean
     fun deleteBudgetUseCase(
         findBudgetByIdOutputPort: FindBudgetByIdOutputPort,
         deleteBudgetByIdOutputPort: DeleteBudgetByIdOutputPort,
+        budgetAccessGuard: BudgetAccessGuard,
         atomicOperationExecutor: AtomicOperationExecutor
     ): DeleteBudgetUseCase =
-        DeleteBudgetService(findBudgetByIdOutputPort, deleteBudgetByIdOutputPort, atomicOperationExecutor)
+        DeleteBudgetService(findBudgetByIdOutputPort, deleteBudgetByIdOutputPort, budgetAccessGuard, atomicOperationExecutor)
 }
