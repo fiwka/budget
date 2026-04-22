@@ -18,13 +18,13 @@ interface TransactionRepository : JpaRepository<TransactionEntity, UUID> {
 			from transactions t
 			join categories c on c.id = t.category_id
 			where c.budget_id = :budgetId
-			  and (:id is null or t.id = :id)
-			  and (:categoryId is null or t.category_id = :categoryId)
-			  and (:completedDateFrom is null or t.completed_date >= :completedDateFrom)
-			  and (:completedDateTo is null or t.completed_date <= :completedDateTo)
-			  and (:amountFrom is null or t.amount >= :amountFrom)
-			  and (:amountTo is null or t.amount <= :amountTo)
-			  and (:appendixContains is null or cast(t.appendix as text) ilike concat('%', :appendixContains, '%'))
+			  and (cast(:id as uuid) is null or t.id = :id)
+			  and (cast(:categoryId as uuid) is null or t.category_id = :categoryId)
+			  and (cast(:completedDateFrom as timestamptz) is null or t.completed_date >= :completedDateFrom)
+			  and (cast(:completedDateTo as timestamptz) is null or t.completed_date <= :completedDateTo)
+			  and (cast(:amountFrom as numeric) is null or t.amount >= :amountFrom)
+			  and (cast(:amountTo as numeric) is null or t.amount <= :amountTo)
+			  and (cast(:appendixContains as text) is null or cast(t.appendix as text) ilike concat('%', cast(:appendixContains as text), '%'))
 			order by t.completed_date desc, t.id desc
 		""",
 		countQuery = """
@@ -32,13 +32,13 @@ interface TransactionRepository : JpaRepository<TransactionEntity, UUID> {
 			from transactions t
 			join categories c on c.id = t.category_id
 			where c.budget_id = :budgetId
-			  and (:id is null or t.id = :id)
-			  and (:categoryId is null or t.category_id = :categoryId)
-			  and (:completedDateFrom is null or t.completed_date >= :completedDateFrom)
-			  and (:completedDateTo is null or t.completed_date <= :completedDateTo)
-			  and (:amountFrom is null or t.amount >= :amountFrom)
-			  and (:amountTo is null or t.amount <= :amountTo)
-			  and (:appendixContains is null or cast(t.appendix as text) ilike concat('%', :appendixContains, '%'))
+			  and (cast(:id as uuid) is null or t.id = :id)
+			  and (cast(:categoryId as uuid) is null or t.category_id = :categoryId)
+			  and (cast(:completedDateFrom as timestamptz) is null or t.completed_date >= :completedDateFrom)
+			  and (cast(:completedDateTo as timestamptz) is null or t.completed_date <= :completedDateTo)
+			  and (cast(:amountFrom as numeric) is null or t.amount >= :amountFrom)
+			  and (cast(:amountTo as numeric) is null or t.amount <= :amountTo)
+			  and (cast(:appendixContains as text) is null or cast(t.appendix as text) ilike concat('%', cast(:appendixContains as text), '%'))
 		""",
 		nativeQuery = true,
 	)
