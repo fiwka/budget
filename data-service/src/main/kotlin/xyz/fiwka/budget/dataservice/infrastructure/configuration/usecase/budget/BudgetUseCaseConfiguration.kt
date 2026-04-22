@@ -5,17 +5,20 @@ import org.springframework.context.annotation.Configuration
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.CreateBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.DeleteBudgetUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.budget.ListAccessibleBudgetsUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.ReadBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.budget.UpdateBudgetUseCase
 import xyz.fiwka.budget.dataservice.application.port.out.access.SaveBudgetRoleForUserOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.auth.FindUserByLoginOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.DeleteBudgetByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.FindBudgetByIdOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.budget.ListAccessibleBudgetsOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.SaveBudgetOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.budget.UpdateBudgetOutputPort
 import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
 import xyz.fiwka.budget.dataservice.application.service.budget.CreateBudgetService
 import xyz.fiwka.budget.dataservice.application.service.budget.DeleteBudgetService
+import xyz.fiwka.budget.dataservice.application.service.budget.ListAccessibleBudgetsService
 import xyz.fiwka.budget.dataservice.application.service.budget.ReadBudgetService
 import xyz.fiwka.budget.dataservice.application.service.budget.UpdateBudgetService
 
@@ -41,6 +44,14 @@ class BudgetUseCaseConfiguration {
         budgetAccessGuard: BudgetAccessGuard,
     ): ReadBudgetUseCase =
         ReadBudgetService(findBudgetByIdOutputPort, budgetAccessGuard)
+
+    @Bean
+    fun listAccessibleBudgetsUseCase(
+        findUserByLoginOutputPort: FindUserByLoginOutputPort,
+        listAccessibleBudgetsOutputPort: ListAccessibleBudgetsOutputPort,
+    ): ListAccessibleBudgetsUseCase =
+        ListAccessibleBudgetsService(findUserByLoginOutputPort, listAccessibleBudgetsOutputPort)
+
 
     @Bean
     fun updateBudgetUseCase(

@@ -3,8 +3,10 @@ package xyz.fiwka.budget.dataservice.infrastructure.controller.transaction
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -16,15 +18,21 @@ import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTran
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ListBudgetTransactionsCommand
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ListBudgetTransactionsUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ReadTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ReadTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionUseCase
 import xyz.fiwka.budget.dataservice.infrastructure.dto.request.transaction.TransactionFieldsRequest
+import xyz.fiwka.budget.dataservice.infrastructure.dto.request.transaction.TransactionListQueryRequest
+import xyz.fiwka.budget.dataservice.infrastructure.dto.response.transaction.TransactionResponse
+import xyz.fiwka.budget.dataservice.infrastructure.dto.response.page.PageResponse
 import xyz.fiwka.budget.dataservice.infrastructure.mapper.TransactionMapper
 import java.util.UUID
 
 @RestController
+@Validated
 @RequestMapping("/api/transaction")
 class TransactionController(
     private val transactionMapper: TransactionMapper,
@@ -32,6 +40,7 @@ class TransactionController(
     private val readTransactionUseCase: ReadTransactionUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val listBudgetTransactionsUseCase: ListBudgetTransactionsUseCase,
 ) {
 
     @PostMapping
@@ -54,6 +63,37 @@ class TransactionController(
     @GetMapping("/{id}")
     fun readTransaction(@PathVariable id: UUID, authentication: Authentication) =
         transactionMapper.toDto(readTransactionUseCase.execute(ReadTransactionCommand(id, authentication.name)).transaction)
+
+    @GetMapping("/budget/{budgetId}")
+    fun listBudgetTransactions(
+        @PathVariable budgetId: UUID,
+        @Valid @ModelAttribute query: TransactionListQueryRequest,
+        authentication: Authentication,
+    ): PageResponse<TransactionResponse> {
+        val response = listBudgetTransactionsUseCase.execute(
+            ListBudgetTransactionsCommand(
+                budgetId = budgetId,
+                actorLogin = authentication.name,
+                page = query.page,
+                size = query.size,
+                id = query.id,
+                categoryId = query.categoryId,
+                completedDateFrom = query.completedDateFrom,
+                completedDateTo = query.completedDateTo,
+                amountFrom = query.amountFrom,
+                amountTo = query.amountTo,
+                appendixContains = query.appendixContains,
+            )
+        ).transactions
+
+        return PageResponse(
+            items = response.items.map(transactionMapper::toDto),
+            page = response.page,
+            size = response.size,
+            totalElements = response.totalElements,
+            totalPages = response.totalPages,
+        )
+    }
 
     @PutMapping("/{id}")
     fun updateTransaction(

@@ -7,16 +7,19 @@ import tools.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionUseCase
+import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ListBudgetTransactionsUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.ReadTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.out.category.FindCategoryByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.SaveOutboxMessageOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.DeleteTransactionByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.FindTransactionByIdOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.transaction.ListBudgetTransactionsOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.SaveTransactionOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.UpdateTransactionOutputPort
 import xyz.fiwka.budget.dataservice.application.service.transaction.CreateTransactionService
 import xyz.fiwka.budget.dataservice.application.service.transaction.DeleteTransactionService
+import xyz.fiwka.budget.dataservice.application.service.transaction.ListBudgetTransactionsService
 import xyz.fiwka.budget.dataservice.application.service.transaction.ReadTransactionService
 import xyz.fiwka.budget.dataservice.application.service.transaction.UpdateTransactionService
 import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
@@ -51,6 +54,14 @@ class TransactionUseCaseConfiguration {
         budgetAccessGuard: BudgetAccessGuard,
     ): ReadTransactionUseCase =
         ReadTransactionService(findTransactionByIdOutputPort, findCategoryByIdOutputPort, budgetAccessGuard)
+
+    @Bean
+    fun listBudgetTransactionsUseCase(
+        budgetAccessGuard: BudgetAccessGuard,
+        listBudgetTransactionsOutputPort: ListBudgetTransactionsOutputPort,
+    ): ListBudgetTransactionsUseCase =
+        ListBudgetTransactionsService(budgetAccessGuard, listBudgetTransactionsOutputPort)
+
 
     @Bean
     fun updateTransactionUseCase(
