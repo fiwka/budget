@@ -12,14 +12,23 @@ interface CategoryRepository : JpaRepository<CategoryEntity, UUID> {
 
 	@Query(
 		value = """
-			select c
-			from CategoryEntity c
-			where c.budgetId = :budgetId
+			select c.*
+			from categories c
+			where c.budget_id = :budgetId
 			  and (:id is null or c.id = :id)
-			  and (:name is null or lower(c.name) like lower(concat('%', :name, '%')))
-			  and (:isConsumption is null or c.isConsumption = :isConsumption)
-			order by c.name asc, c.id asc
-		"""
+			  and (:name is null or c.name ilike concat('%', cast(:name as text), '%'))
+			  and (:isConsumption is null or c.is_consumption = :isConsumption)
+			order by c.name, c.id
+		""",
+		countQuery = """
+			select count(*)
+			from categories c
+			where c.budget_id = :budgetId
+			  and (:id is null or c.id = :id)
+			  and (:name is null or c.name ilike concat('%', cast(:name as text), '%'))
+			  and (:isConsumption is null or c.is_consumption = :isConsumption)
+		""",
+		nativeQuery = true,
 	)
 	fun findBudgetCategories(
 		@Param("budgetId") budgetId: UUID,
