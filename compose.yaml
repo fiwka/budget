@@ -18,7 +18,8 @@ services:
     networks:
       - budget
     environment:
-        REDIS_HOST: redis
+      REDIS_HOST: redis
+      EUREKA_SERVER: eureka:8761
     ports:
       - "8090:8080"
     healthcheck:
