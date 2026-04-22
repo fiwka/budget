@@ -12,6 +12,34 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 5
+  api-gateway:
+    image: ghcr.io/fiwka/api-gateway:latest
+    hostname: api-gateway
+    networks:
+      - budget
+    environment:
+        REDIS_HOST: redis
+    ports:
+      - "8090:8080"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    depends_on:
+      redis:
+        condition: service_healthy
+  redis:
+    image: redis:latest
+    hostname: redis
+    networks:
+      - budget
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
   data-service:
     image: ghcr.io/fiwka/data-service:latest
     networks:

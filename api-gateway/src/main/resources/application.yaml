@@ -1,7 +1,41 @@
 spring:
   application:
     name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: data-service-auth-register
+              uri: lb://data-service
+              predicates:
+                - Path=/api/auth/register
+              filters:
+                - RemoveRequestHeader=Cookie
+            - id: data-service-protected
+              uri: lb://data-service
+              predicates:
+                - Path=/api/budget/**,/api/category/**,/api/transaction/**,/api/user/**
+              filters:
+                - RemoveRequestHeader=Cookie
+
+server:
+  reactive:
+    session:
+      timeout: ${SESSION_TIMEOUT:30m}
+
 eureka:
   client:
     service-url:
       defaultZone: http://${EUREKA_SERVER}/eureka/
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
