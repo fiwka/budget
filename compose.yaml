@@ -153,7 +153,7 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
-      timeout: 5s
+      timeout: 15s
       retries: 5
   budget_analytics_pg:
     image: postgres
@@ -168,7 +168,7 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
-      timeout: 5s
+      timeout: 15s
       retries: 5
   budget_data_migrations:
     build:
