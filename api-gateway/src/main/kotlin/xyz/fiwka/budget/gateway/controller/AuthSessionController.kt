@@ -1,5 +1,6 @@
 package xyz.fiwka.budget.gateway.controller
 
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -13,6 +14,7 @@ import xyz.fiwka.budget.gateway.service.AuthSessionService
 
 @RestController
 @RequestMapping("/api/session")
+@CrossOrigin(origins = ["http://localhost:5173"], maxAge = 3600, allowCredentials = "true")
 class AuthSessionController(
     private val authSessionService: AuthSessionService
 ) {
