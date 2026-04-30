@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.application.service.transaction
 
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.exception.category.CategoryNotFoundException
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes

@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.application.service.transaction
 
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -85,7 +85,7 @@ class CreateTransactionServiceTest {
             saveTransactionOutputPort = saveTransactionPort,
             saveOutboxMessageOutputPort = saveOutboxPort,
             budgetAccessGuard = BudgetAccessGuard(findUserPort, findBudgetRolePort, findCategoryPort, findTransactionPort),
-            jsonMapper = JsonMapper(),
+            jsonMapper = JsonMapper.builder().findAndAddModules().build(),
             transactionCreatedTopic = "transaction-created",
             atomicOperationExecutor = object : AtomicOperationExecutor {
                 override fun <T> execute(operation: () -> T): T = operation()

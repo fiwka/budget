@@ -3,7 +3,7 @@ package xyz.fiwka.budget.dataservice.infrastructure.configuration.usecase.transa
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionUseCase

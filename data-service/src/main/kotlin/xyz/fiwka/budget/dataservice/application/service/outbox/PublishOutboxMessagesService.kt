@@ -1,7 +1,7 @@
 package xyz.fiwka.budget.dataservice.application.service.outbox
 
 import org.slf4j.LoggerFactory
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
 import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionCreatedOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.`in`.outbox.PublishOutboxMessagesUseCase
