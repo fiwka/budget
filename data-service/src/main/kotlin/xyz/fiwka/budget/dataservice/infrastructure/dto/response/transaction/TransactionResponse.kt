@@ -1,15 +1,14 @@
 package xyz.fiwka.budget.dataservice.infrastructure.dto.response.transaction
 
-import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 data class TransactionResponse(
     val id: UUID,
     val categoryId: UUID,
     val completedDate: Instant,
     val amount: BigDecimal,
-    val appendix: JsonNode? = null,
+    val appendix: Map<String, Any>? = null,
 )
 

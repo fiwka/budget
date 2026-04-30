@@ -14,7 +14,7 @@ data class CreateTransactionCommand(
     val completedDate: Instant,
     val amount: BigDecimal,
     val actorLogin: String,
-    val appendix: JsonNode? = null,
+    val appendix: Map<String, Any>? = null,
 )
 
 @JvmInline

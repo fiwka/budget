@@ -10,13 +10,13 @@ class Transaction(
     var categoryId: UUID,
     var completedDate: Instant,
     var amount: BigDecimal,
-    var appendix: JsonNode? = null,
+    var appendix: Map<String, Any>? = null,
 ) {
     fun update(
         categoryId: UUID,
         completedDate: Instant,
         amount: BigDecimal,
-        appendix: JsonNode?,
+        appendix: Map<String, Any>?,
     ) {
         this.categoryId = categoryId
         this.completedDate = completedDate

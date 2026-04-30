@@ -15,6 +15,6 @@ data class TransactionFieldsRequest(
     @field:NotNull
     @field:DecimalMin(value = "0.01", inclusive = true)
     val amount: BigDecimal,
-    val appendix: JsonNode? = null,
+    val appendix: Map<String, Any>? = null,
 )
 
