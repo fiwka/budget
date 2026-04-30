@@ -1,16 +1,11 @@
 package xyz.fiwka.budget.dataservice.infrastructure.entity
 
-import tools.jackson.databind.JsonNode
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
-import jakarta.persistence.Version
+import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -29,7 +24,7 @@ class TransactionEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    var appendix: JsonNode? = null
+    var appendix: Map<String, Any>? = null
 
     @Version
     var version: Long = 0

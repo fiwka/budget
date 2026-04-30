@@ -1,24 +1,26 @@
 ﻿import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../state/auth'
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
+import { useAuth } from '../state/auth'
+import { useToast } from '../state/toast'
+import { humanizeError } from '../utils/uiText'
 
 export function AuthPage() {
   const { login, register } = useAuth()
+  const toast = useToast()
   const navigate = useNavigate()
   const [tab, setTab] = useState<'login' | 'register'>('login')
-  const [error, setError] = useState<string | null>(null)
 
   async function onLoginSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
     try {
-      setError(null)
       await login(String(form.get('login')), String(form.get('password')))
+      toast.success('Вход выполнен.')
       navigate('/budgets')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка входа')
+      toast.error(humanizeError(err, 'Ошибка входа.'))
     }
   }
 
@@ -26,11 +28,11 @@ export function AuthPage() {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
     try {
-      setError(null)
       await register(String(form.get('username')), String(form.get('email')), String(form.get('password')))
+      toast.success('Аккаунт создан. Теперь войдите в систему.')
       setTab('login')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка регистрации')
+      toast.error(humanizeError(err, 'Ошибка регистрации.'))
     }
   }
 
@@ -61,8 +63,6 @@ export function AuthPage() {
             <button type="submit">Создать аккаунт</button>
           </form>
         )}
-
-        {error && <p className="error">{error}</p>}
       </section>
     </main>
   )

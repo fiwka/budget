@@ -1,6 +1,7 @@
 ﻿import { Navigate, Outlet } from 'react-router-dom'
 import { AuthProvider, useAuth } from './state/auth'
 import { ThemeProvider } from './state/theme'
+import { ToastProvider } from './state/toast'
 
 function AuthGate({ requireAuth }: { requireAuth: boolean }) {
   const { initialized, isAuthenticated } = useAuth()
@@ -16,9 +17,11 @@ function AuthGate({ requireAuth }: { requireAuth: boolean }) {
 export function AppLayout() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Outlet />
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   )
 }

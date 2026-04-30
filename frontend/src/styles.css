@@ -101,9 +101,37 @@ th { color: var(--muted); font-weight: 600; }
 .chart-b { background: linear-gradient(180deg, rgba(249,173,88,.85), rgba(249,173,88,.25)); }
 .chart-c { background: linear-gradient(180deg, rgba(95,140,255,.8), rgba(95,140,255,.2)); }
 
+.toast-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  display: grid;
+  gap: 0.6rem;
+  width: min(420px, calc(100vw - 2rem));
+  z-index: 1200;
+}
+
+.toast {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  padding: 0.8rem 1rem;
+}
+
+.toast-success {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+}
+
+.toast-error {
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--border));
+}
+
 @media (max-width: 920px) {
   .grid-2 { grid-template-columns: 1fr; }
   .span-2 { grid-column: span 1; }
   .charts-row { grid-template-columns: 1fr; }
 }
+
 

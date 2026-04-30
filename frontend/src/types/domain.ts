@@ -40,7 +40,7 @@ export type Transaction = {
   id: string
   categoryId: string
   completedDate: string
-  amount: string
+  amount: number
   appendix?: unknown
 }
 

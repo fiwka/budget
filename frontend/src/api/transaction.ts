@@ -13,21 +13,25 @@ export function listTransactions(budgetId: string, page = 0, size = DEFAULT_PAGE
 export type TransactionFields = {
   categoryId: string
   completedDate: string
-  amount: string
-  appendix?: unknown
+  amount: number
+}
+
+function toMoneyAmount(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100
 }
 
 export function createTransaction(payload: TransactionFields) {
+  const { categoryId, completedDate, amount } = payload
   return request<Transaction>('/api/transaction', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ categoryId, completedDate, amount: toMoneyAmount(amount) }),
   })
 }
 
 export function updateTransaction(id: string, payload: TransactionFields) {
   return request<Transaction>(`/api/transaction/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, amount: toMoneyAmount(payload.amount) }),
   })
 }
 
