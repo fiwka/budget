@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.infrastructure.dto.request.transaction
 
-import tools.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.JsonNode
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal

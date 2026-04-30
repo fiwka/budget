@@ -1,6 +1,6 @@
 package xyz.fiwka.budget.dataservice.domain.outbox
 
-import tools.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.JsonNode
 import java.time.Instant
 import java.util.UUID
 
@@ -11,4 +11,3 @@ class OutboxMessage(
     val payload: JsonNode,
     val createdAt: Instant? = null,
 )
-
