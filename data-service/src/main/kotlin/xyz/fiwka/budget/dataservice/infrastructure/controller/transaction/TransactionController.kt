@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ObjectMapper
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.DeleteTransactionCommand
@@ -41,6 +44,7 @@ class TransactionController(
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val listBudgetTransactionsUseCase: ListBudgetTransactionsUseCase,
+    private val objectMapper: ObjectMapper,
 ) {
 
     @PostMapping
@@ -55,7 +59,7 @@ class TransactionController(
                     completedDate = transactionFieldsRequest.completedDate,
                     amount = transactionFieldsRequest.amount,
                     actorLogin = authentication.name,
-                    appendix = transactionFieldsRequest.appendix,
+                    appendix = transactionFieldsRequest.appendix?.let { jsonNodeToMap(it) },
                 )
             ).transaction
         )
@@ -109,7 +113,7 @@ class TransactionController(
                     completedDate = transactionFieldsRequest.completedDate,
                     amount = transactionFieldsRequest.amount,
                     actorLogin = authentication.name,
-                    appendix = transactionFieldsRequest.appendix,
+                    appendix = transactionFieldsRequest.appendix?.let { jsonNodeToMap(it) },
                 )
             ).transaction
         )
@@ -118,6 +122,11 @@ class TransactionController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteTransaction(@PathVariable id: UUID, authentication: Authentication) {
         deleteTransactionUseCase.execute(DeleteTransactionCommand(id, authentication.name))
+    }
+
+    private fun jsonNodeToMap(jsonNode: JsonNode): Map<String, Any>? {
+        if (jsonNode.isNull) return null
+        return objectMapper.convertValue(jsonNode, object : TypeReference<Map<String, Any>>() {})
     }
 }
 

@@ -1,6 +1,5 @@
 package xyz.fiwka.budget.dataservice.domain.transaction
 
-import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
@@ -24,4 +23,3 @@ class Transaction(
         this.appendix = appendix
     }
 }
-

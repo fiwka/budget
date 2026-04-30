@@ -1,6 +1,7 @@
 package xyz.fiwka.budget.dataservice.infrastructure.controller.exception
 
 import jakarta.validation.ConstraintViolationException
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -85,9 +86,15 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    fun handleInternalServerError(exception: RuntimeException): ProblemDetail =
-        ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, exception.message)
+    fun handleInternalServerError(exception: RuntimeException): ProblemDetail {
+        log.error("Internal Server Error", exception)
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, exception.message)
             .apply {
                 setProperty("exception", exception.javaClass.name)
             }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+    }
 }
