@@ -5,4 +5,5 @@
   budget: (id: string) => ['budget', id] as const,
   categories: (budgetId: string, page: number) => ['categories', budgetId, page] as const,
   transactions: (budgetId: string, page: number) => ['transactions', budgetId, page] as const,
+  analytics: (budgetId: string, periodsKey: string) => ['analytics', budgetId, periodsKey] as const,
 }

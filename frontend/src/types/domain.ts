@@ -51,3 +51,19 @@ export type ApiProblem = {
   errors?: Record<string, string[]>
 }
 
+export type CategoryExpenseShare = {
+  categoryId: string
+  total: number
+  sharePercent: number
+}
+
+export type BudgetAnalyticsSummary = {
+  budgetId: string
+  period: string
+  income: number
+  expenses: number
+  balance: number
+  savingsRate: number
+  topExpenseCategories: CategoryExpenseShare[]
+}
+

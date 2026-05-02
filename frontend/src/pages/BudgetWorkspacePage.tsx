@@ -1,7 +1,10 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import Highcharts from 'highcharts'
+import { HighchartsReact } from 'highcharts-react-official'
 import { useNavigate, useParams } from 'react-router-dom'
+import * as analyticsApi from '../api/analytics'
 import * as budgetApi from '../api/budget'
 import * as categoryApi from '../api/category'
 import { queryKeys } from '../api/queryKeys'
@@ -14,10 +17,32 @@ import { humanizeError } from '../utils/uiText'
 
 type Tab = 'transactions' | 'categories' | 'assistant' | 'analytics' | 'settings'
 const allowedTabs: Tab[] = ['transactions', 'categories', 'assistant', 'analytics', 'settings']
+type AnalyticsPreset = '3m' | '6m' | '12m' | 'custom'
 
 function toMoneyAmount(raw: FormDataEntryValue | null) {
   const parsed = Number(raw)
   return Math.round((parsed + Number.EPSILON) * 100) / 100
+}
+
+function toMonthInputValue(date: Date) {
+  return date.toISOString().slice(0, 7)
+}
+
+function shiftPeriod(period: string, deltaMonths: number) {
+  const [year, month] = period.split('-').map(Number)
+  const base = new Date(Date.UTC(year, month - 1 + deltaMonths, 1))
+  return `${base.getUTCFullYear()}-${String(base.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
+function periodsBetween(from: string, to: string) {
+  if (from > to) return []
+  const periods: string[] = []
+  let cursor = from
+  while (cursor <= to && periods.length < 36) {
+    periods.push(cursor)
+    cursor = shiftPeriod(cursor, 1)
+  }
+  return periods
 }
 
 export function BudgetWorkspacePage() {
@@ -29,14 +54,28 @@ export function BudgetWorkspacePage() {
   const [catPage, setCatPage] = useState(0)
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [analyticsPreset, setAnalyticsPreset] = useState<AnalyticsPreset>('6m')
+  const [analyticsToPeriod, setAnalyticsToPeriod] = useState(() => toMonthInputValue(new Date()))
+  const [analyticsFromPeriod, setAnalyticsFromPeriod] = useState(() => shiftPeriod(toMonthInputValue(new Date()), -5))
 
   if (!budgetId) return <div className="screen">Budget id is required</div>
   const id = budgetId
   const currentTab: Tab = allowedTabs.includes(tab as Tab) ? (tab as Tab) : 'transactions'
 
+  const analyticsPeriods = useMemo(() => {
+    if (analyticsPreset === 'custom') return periodsBetween(analyticsFromPeriod, analyticsToPeriod)
+    const presetSize = analyticsPreset === '3m' ? 3 : analyticsPreset === '6m' ? 6 : 12
+    return Array.from({ length: presetSize }, (_, idx) => shiftPeriod(analyticsToPeriod, -(presetSize - idx - 1)))
+  }, [analyticsFromPeriod, analyticsPreset, analyticsToPeriod])
+
   const budgetQuery = useQuery({ queryKey: queryKeys.budget(id), queryFn: () => budgetApi.readBudget(id) })
   const transactionsQuery = useQuery({ queryKey: queryKeys.transactions(id, txPage), queryFn: () => transactionApi.listTransactions(id, txPage) })
   const categoriesQuery = useQuery({ queryKey: queryKeys.categories(id, catPage), queryFn: () => categoryApi.listCategories(id, catPage) })
+  const analyticsQuery = useQuery({
+    queryKey: queryKeys.analytics(id, analyticsPeriods.join(',')),
+    enabled: currentTab === 'analytics' && analyticsPeriods.length > 0,
+    queryFn: async () => Promise.all(analyticsPeriods.map((period) => analyticsApi.getMonthlySummary(id, period))),
+  })
 
   const selectedTransaction = transactionsQuery.data?.items.find((x) => x.id === selectedTransactionId) ?? null
   const selectedCategory = categoriesQuery.data?.items.find((x) => x.id === selectedCategoryId) ?? null
@@ -81,6 +120,10 @@ export function BudgetWorkspacePage() {
   useEffect(() => {
     if (categoriesQuery.error) toast.error(humanizeError(categoriesQuery.error, 'Не удалось загрузить категории.'))
   }, [categoriesQuery.error, toast])
+
+  useEffect(() => {
+    if (analyticsQuery.error) toast.error(humanizeError(analyticsQuery.error, 'Не удалось загрузить аналитику.'))
+  }, [analyticsQuery.error, toast])
 
   async function onCreateCategory(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -148,6 +191,23 @@ export function BudgetWorkspacePage() {
     }
   }
 
+  const analyticsSeries = analyticsQuery.data ?? []
+  const periodLabels = analyticsSeries.map((item) =>
+    new Intl.DateTimeFormat('ru-RU', { month: 'short', year: 'numeric' }).format(new Date(`${item.period}-01T00:00:00Z`))
+  )
+  const analyticsTotals = analyticsSeries.reduce(
+    (acc, item) => ({
+      income: acc.income + Number(item.income),
+      expenses: acc.expenses + Number(item.expenses),
+      balance: acc.balance + Number(item.balance),
+    }),
+    { income: 0, expenses: 0, balance: 0 }
+  )
+  const avgSavingsRate = analyticsSeries.length
+    ? analyticsSeries.reduce((acc, item) => acc + Number(item.savingsRate), 0) / analyticsSeries.length
+    : 0
+  const latestSummary = analyticsSeries[analyticsSeries.length - 1]
+
   return (
     <main className="screen">
       <header className="topbar">
@@ -209,7 +269,85 @@ export function BudgetWorkspacePage() {
       )}
 
       {currentTab === 'assistant' && <section className="card"><h3>ИИ-ассистент</h3><p>Интерфейс подготовлен. Логика чата будет подключаться через API Gateway отдельным endpoint-ом.</p><div className="chat-mock"><div className="chat-line bot">Привет! Я помогу с анализом бюджета.</div><div className="chat-line user">Покажи топ-3 категории расходов за месяц.</div><div className="chat-line bot">Функционал скоро будет доступен.</div></div></section>}
-      {currentTab === 'analytics' && <section className="card"><h3>Аналитика</h3><p>Пока заглушка визуализаций. Можно заменить на данные analytics-service через gateway.</p><div className="charts-row"><div className="chart chart-a" /><div className="chart chart-b" /><div className="chart chart-c" /></div></section>}
+
+      {currentTab === 'analytics' && (
+        <section className="card analytics-dashboard">
+          <h3>Аналитика</h3>
+          <div className="analytics-controls">
+            <div className="segmented">
+              <button className={analyticsPreset === '3m' ? 'active' : ''} onClick={() => setAnalyticsPreset('3m')}>3 месяца</button>
+              <button className={analyticsPreset === '6m' ? 'active' : ''} onClick={() => setAnalyticsPreset('6m')}>6 месяцев</button>
+              <button className={analyticsPreset === '12m' ? 'active' : ''} onClick={() => setAnalyticsPreset('12m')}>12 месяцев</button>
+              <button className={analyticsPreset === 'custom' ? 'active' : ''} onClick={() => setAnalyticsPreset('custom')}>Свой диапазон</button>
+            </div>
+            <div className="row">
+              <label>До<input type="month" value={analyticsToPeriod} onChange={(e) => setAnalyticsToPeriod(e.target.value)} /></label>
+              {analyticsPreset === 'custom' && (
+                <label>От<input type="month" value={analyticsFromPeriod} onChange={(e) => setAnalyticsFromPeriod(e.target.value)} /></label>
+              )}
+            </div>
+          </div>
+
+          <div className="analytics-kpi">
+            <article className="kpi"><span>Доход</span><strong>{moneyLabel(analyticsTotals.income)}</strong></article>
+            <article className="kpi"><span>Расход</span><strong>{moneyLabel(analyticsTotals.expenses)}</strong></article>
+            <article className="kpi"><span>Баланс</span><strong>{moneyLabel(analyticsTotals.balance)}</strong></article>
+            <article className="kpi"><span>Средняя норма сбережений</span><strong>{avgSavingsRate.toFixed(2)}%</strong></article>
+          </div>
+
+          {analyticsQuery.isLoading && <p className="muted">Загружаем аналитику...</p>}
+          {!analyticsQuery.isLoading && analyticsSeries.length > 0 && (
+            <div className="charts-row charts-real">
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'line', backgroundColor: 'transparent' },
+                  title: { text: 'Доходы, расходы и баланс' },
+                  xAxis: { categories: periodLabels },
+                  yAxis: { title: { text: 'Сумма (RUB)' } },
+                  credits: { enabled: false },
+                  series: [
+                    { type: 'line', name: 'Доход', data: analyticsSeries.map((x) => Number(x.income)), color: '#16a34a' },
+                    { type: 'line', name: 'Расход', data: analyticsSeries.map((x) => Number(x.expenses)), color: '#dc2626' },
+                    { type: 'line', name: 'Баланс', data: analyticsSeries.map((x) => Number(x.balance)), color: '#2563eb' },
+                  ],
+                }}
+              />
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'column', backgroundColor: 'transparent' },
+                  title: { text: 'Норма сбережений по месяцам' },
+                  xAxis: { categories: periodLabels },
+                  yAxis: { title: { text: '%' } },
+                  credits: { enabled: false },
+                  series: [{ type: 'column', name: 'Savings rate', data: analyticsSeries.map((x) => Number(x.savingsRate)), color: '#0b8a6d' }],
+                }}
+              />
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'pie', backgroundColor: 'transparent' },
+                  title: { text: `Топ категорий расходов (${latestSummary?.period ?? ''})` },
+                  credits: { enabled: false },
+                  series: [
+                    {
+                      type: 'pie',
+                      name: 'Доля',
+                      data: (latestSummary?.topExpenseCategories ?? []).map((item) => ({
+                        name: categoryMap.get(item.categoryId)?.name ?? item.categoryId.slice(0, 8),
+                        y: Number(item.total),
+                      })),
+                    },
+                  ],
+                }}
+              />
+            </div>
+          )}
+          {!analyticsQuery.isLoading && analyticsSeries.length === 0 && <p className="muted">Нет данных за выбранный период.</p>}
+        </section>
+      )}
+
       {currentTab === 'settings' && budgetQuery.data && <section className="card"><h3>Настройки бюджета</h3><form className="form-grid" onSubmit={async (e) => {
         e.preventDefault()
         const form = new FormData(e.currentTarget)
