@@ -53,6 +53,8 @@ app:
   kafka:
     topic:
       transaction-created: transaction-created
+      transaction-updated: transaction-updated
+      transaction-deleted: transaction-deleted
   outbox:
     batch-size: 100
     scheduler:

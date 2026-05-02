@@ -23,6 +23,12 @@ spring:
                 - Path=/api/budget/**,/api/category/**,/api/transaction/**,/api/user/**
               filters:
                 - RemoveRequestHeader=Cookie
+            - id: analytics-service-protected
+              uri: lb://analytics-service
+              predicates:
+                - Path=/api/analytics/**
+              filters:
+                - RemoveRequestHeader=Cookie
           globalcors:
            cors-configurations:
                '[/**]':

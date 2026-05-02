@@ -13,4 +13,16 @@ class KafkaConfiguration {
         .partitions(1)
         .replicas(1)
         .build()
+
+    @Bean
+    fun transactionUpdatedEventTopic(): NewTopic = TopicBuilder.name("transaction-updated")
+        .partitions(1)
+        .replicas(1)
+        .build()
+
+    @Bean
+    fun transactionDeletedEventTopic(): NewTopic = TopicBuilder.name("transaction-deleted")
+        .partitions(1)
+        .replicas(1)
+        .build()
 }

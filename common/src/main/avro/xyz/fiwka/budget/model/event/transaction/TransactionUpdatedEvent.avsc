@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "TransactionCreatedEvent",
+  "name": "TransactionUpdatedEvent",
   "namespace": "xyz.fiwka.budget.model.event.transaction",
   "fields": [
     {

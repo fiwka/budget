@@ -1,20 +1,16 @@
 package xyz.fiwka.budget.dataservice.application.service.outbox
 
 import org.slf4j.LoggerFactory
-import com.fasterxml.jackson.databind.json.JsonMapper
-import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
-import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionCreatedOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.`in`.outbox.PublishOutboxMessagesUseCase
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.DeleteOutboxMessagesByIdsOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.FindOutboxMessagesBatchOutputPort
-import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishTransactionCreatedEventCommand
-import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishTransactionCreatedEventOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishOutboxEventCommand
+import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishOutboxEventOutputPort
 
 class PublishOutboxMessagesService(
     private val findOutboxMessagesBatchOutputPort: FindOutboxMessagesBatchOutputPort,
-    private val publishTransactionCreatedEventOutputPort: PublishTransactionCreatedEventOutputPort,
+    private val publishOutboxEventOutputPort: PublishOutboxEventOutputPort,
     private val deleteOutboxMessagesByIdsOutputPort: DeleteOutboxMessagesByIdsOutputPort,
-    private val jsonMapper: JsonMapper,
     private val batchSize: Int,
 ) : PublishOutboxMessagesUseCase {
 
@@ -30,22 +26,17 @@ class PublishOutboxMessagesService(
 
         messages.forEach { message ->
             runCatching {
-                if (message.type != OutboxTypes.TRANSACTION_CREATED_EVENT) {
-                    log.warn("Skipping unsupported outbox message type '{}' for message {}", message.type, message.id)
-                    return@runCatching
-                }
-
-                val payload = jsonMapper.treeToValue(message.payload, TransactionCreatedOutboxPayload::class.java)
-                publishTransactionCreatedEventOutputPort.execute(
-                    PublishTransactionCreatedEventCommand(
+                publishOutboxEventOutputPort.execute(
+                    PublishOutboxEventCommand(
+                        type = message.type,
                         topic = message.topic,
-                        payload = payload,
+                        payload = message.payload,
                     )
                 )
 
                 successfullyPublishedIds.add(requireNotNull(message.id))
             }.onFailure { error ->
-                log.warn("Failed to publish outbox message {}", message.id, error)
+                log.warn("Failed to publish outbox message {} with type {}", message.id, message.type, error)
             }
         }
 

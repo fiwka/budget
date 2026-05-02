@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "TransactionDeletedEvent",
+  "namespace": "xyz.fiwka.budget.model.event.transaction",
+  "fields": [
+    {
+      "name": "transactionId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    }
+  ]
+}

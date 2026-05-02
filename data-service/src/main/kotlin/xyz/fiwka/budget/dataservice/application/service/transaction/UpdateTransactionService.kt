@@ -1,22 +1,30 @@
 package xyz.fiwka.budget.dataservice.application.service.transaction
 
+import com.fasterxml.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.exception.category.CategoryNotFoundException
 import xyz.fiwka.budget.dataservice.application.exception.transaction.TransactionNotFoundException
+import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
+import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionEventOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionResponse
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.UpdateTransactionUseCase
 import xyz.fiwka.budget.dataservice.application.port.out.category.FindCategoryByIdOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.outbox.SaveOutboxMessageOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.FindTransactionByIdOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.transaction.UpdateTransactionOutputPort
 import xyz.fiwka.budget.dataservice.application.service.security.BudgetAccessGuard
 import xyz.fiwka.budget.dataservice.domain.budget.BudgetPermission
+import xyz.fiwka.budget.dataservice.domain.outbox.OutboxMessage
 
 class UpdateTransactionService(
     private val findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
     private val findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
     private val updateTransactionOutputPort: UpdateTransactionOutputPort,
+    private val saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
     private val budgetAccessGuard: BudgetAccessGuard,
+    private val jsonMapper: JsonMapper,
+    private val transactionUpdatedTopic: String,
     private val atomicOperationExecutor: AtomicOperationExecutor,
 ) : UpdateTransactionUseCase {
     override fun execute(request: UpdateTransactionCommand): UpdateTransactionResponse =
@@ -43,7 +51,23 @@ class UpdateTransactionService(
                 appendix = request.appendix,
             )
 
-            UpdateTransactionResponse(updateTransactionOutputPort.execute(transaction))
+            val updatedTransaction = updateTransactionOutputPort.execute(transaction)
+            saveOutboxMessageOutputPort.execute(
+                OutboxMessage(
+                    id = null,
+                    type = OutboxTypes.TRANSACTION_UPDATED_EVENT,
+                    topic = transactionUpdatedTopic,
+                    payload = jsonMapper.valueToTree(
+                        TransactionEventOutboxPayload.fromTransaction(
+                            transaction = updatedTransaction,
+                            budgetId = targetCategory.budgetId,
+                            isConsumption = targetCategory.isConsumption,
+                        )
+                    ),
+                )
+            )
+
+            UpdateTransactionResponse(updatedTransaction)
         }
 }
 

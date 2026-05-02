@@ -26,3 +26,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://${EUREKA_SERVER}/eureka/
+app:
+  kafka:
+    topic:
+      transaction-created: transaction-created
+      transaction-updated: transaction-updated
+      transaction-deleted: transaction-deleted

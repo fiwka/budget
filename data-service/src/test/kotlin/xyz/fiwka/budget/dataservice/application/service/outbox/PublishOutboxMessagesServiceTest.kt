@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import com.fasterxml.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
-import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionCreatedOutboxPayload
+import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionEventOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.DeleteOutboxMessagesByIdsOutputPort
 import xyz.fiwka.budget.dataservice.application.port.out.outbox.FindOutboxMessagesBatchOutputPort
-import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishTransactionCreatedEventCommand
-import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishTransactionCreatedEventOutputPort
+import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishOutboxEventCommand
+import xyz.fiwka.budget.dataservice.application.port.out.outbox.PublishOutboxEventOutputPort
 import xyz.fiwka.budget.dataservice.domain.outbox.OutboxMessage
 import java.time.Instant
 import java.util.UUID
@@ -21,9 +21,11 @@ class PublishOutboxMessagesServiceTest {
             .findAndAddModules()
             .build()
         val messageId = UUID.randomUUID()
-        val payload = TransactionCreatedOutboxPayload(
+        val payload = TransactionEventOutboxPayload(
             transactionId = UUID.randomUUID(),
             categoryId = UUID.randomUUID(),
+            budgetId = UUID.randomUUID(),
+            isConsumption = true,
             completedDate = Instant.now().toEpochMilli(),
             amount = "10.00",
             appendix = "null",
@@ -44,8 +46,8 @@ class PublishOutboxMessagesServiceTest {
         }
 
         val publishedTopics = mutableListOf<String>()
-        val publishPort = object : PublishTransactionCreatedEventOutputPort {
-            override fun execute(request: PublishTransactionCreatedEventCommand) {
+        val publishPort = object : PublishOutboxEventOutputPort {
+            override fun execute(request: PublishOutboxEventCommand) {
                 publishedTopics.add(request.topic)
             }
         }
@@ -59,9 +61,8 @@ class PublishOutboxMessagesServiceTest {
 
         val service = PublishOutboxMessagesService(
             findOutboxMessagesBatchOutputPort = findBatchPort,
-            publishTransactionCreatedEventOutputPort = publishPort,
+            publishOutboxEventOutputPort = publishPort,
             deleteOutboxMessagesByIdsOutputPort = deletePort,
-            jsonMapper = jsonMapper,
             batchSize = 50,
         )
 

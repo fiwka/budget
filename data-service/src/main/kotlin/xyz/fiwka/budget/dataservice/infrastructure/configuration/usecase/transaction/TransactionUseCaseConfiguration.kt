@@ -68,14 +68,20 @@ class TransactionUseCaseConfiguration {
         findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         updateTransactionOutputPort: UpdateTransactionOutputPort,
+        saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
         budgetAccessGuard: BudgetAccessGuard,
+        jsonMapper: JsonMapper,
+        @Value("\${app.kafka.topic.transaction-updated:transaction-updated}") transactionUpdatedTopic: String,
         atomicOperationExecutor: AtomicOperationExecutor,
     ): UpdateTransactionUseCase =
         UpdateTransactionService(
             findTransactionByIdOutputPort,
             findCategoryByIdOutputPort,
             updateTransactionOutputPort,
+            saveOutboxMessageOutputPort,
             budgetAccessGuard,
+            jsonMapper,
+            transactionUpdatedTopic,
             atomicOperationExecutor,
         )
 
@@ -84,14 +90,20 @@ class TransactionUseCaseConfiguration {
         findTransactionByIdOutputPort: FindTransactionByIdOutputPort,
         findCategoryByIdOutputPort: FindCategoryByIdOutputPort,
         deleteTransactionByIdOutputPort: DeleteTransactionByIdOutputPort,
+        saveOutboxMessageOutputPort: SaveOutboxMessageOutputPort,
         budgetAccessGuard: BudgetAccessGuard,
+        jsonMapper: JsonMapper,
+        @Value("\${app.kafka.topic.transaction-deleted:transaction-deleted}") transactionDeletedTopic: String,
         atomicOperationExecutor: AtomicOperationExecutor,
     ): DeleteTransactionUseCase =
         DeleteTransactionService(
             findTransactionByIdOutputPort,
             findCategoryByIdOutputPort,
             deleteTransactionByIdOutputPort,
+            saveOutboxMessageOutputPort,
             budgetAccessGuard,
+            jsonMapper,
+            transactionDeletedTopic,
             atomicOperationExecutor,
         )
 }

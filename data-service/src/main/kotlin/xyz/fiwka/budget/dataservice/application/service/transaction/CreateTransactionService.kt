@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import xyz.fiwka.budget.application.operation.AtomicOperationExecutor
 import xyz.fiwka.budget.dataservice.application.exception.category.CategoryNotFoundException
 import xyz.fiwka.budget.dataservice.application.model.outbox.OutboxTypes
-import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionCreatedOutboxPayload
+import xyz.fiwka.budget.dataservice.application.model.outbox.TransactionEventOutboxPayload
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionCommand
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionResponse
 import xyz.fiwka.budget.dataservice.application.port.`in`.transaction.CreateTransactionUseCase
@@ -48,7 +48,13 @@ class CreateTransactionService(
                     id = null,
                     type = OutboxTypes.TRANSACTION_CREATED_EVENT,
                     topic = transactionCreatedTopic,
-                    payload = jsonMapper.valueToTree(TransactionCreatedOutboxPayload.fromTransaction(transaction)),
+                    payload = jsonMapper.valueToTree(
+                        TransactionEventOutboxPayload.fromTransaction(
+                            transaction = transaction,
+                            budgetId = category.budgetId,
+                            isConsumption = category.isConsumption,
+                        )
+                    ),
                 )
             )
 
