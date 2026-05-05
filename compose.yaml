@@ -55,11 +55,12 @@ services:
     networks:
       - budget
     environment:
-      OPENAI_COMPAT_BASE_URL: http://host.docker.internal:1234
+      OPENAI_COMPAT_BASE_URL: http://host.docker.internal:1234/v1
       OPENAI_COMPAT_API_KEY: dummy-key
       OPENAI_COMPAT_MODEL: google/gemma-4-e4b
       REDIS_HOST: redis
       EUREKA_SERVER: eureka:8761
+      MCP_SERVER_SSE_URL: http://mcp-server
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
       interval: 30s
@@ -70,6 +71,8 @@ services:
       redis:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      mcp-server:
         condition: service_healthy
   redis:
     image: redis:latest

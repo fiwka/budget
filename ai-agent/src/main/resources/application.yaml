@@ -22,7 +22,7 @@ spring:
         sse:
           connections:
             budget-mcp:
-              url: ${MCP_SERVER_SSE_URL:http://mcp-server/sse}
+              url: ${MCP_SERVER_SSE_URL:http://mcp-server}
 
 app:
   ai-agent:

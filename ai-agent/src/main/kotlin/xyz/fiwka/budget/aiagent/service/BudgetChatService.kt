@@ -71,13 +71,7 @@ class BudgetChatService(
         }
 
     private fun chatClient(): ChatClient = chatClientBuilder
-        .defaultToolCallbacks(*toolCallbackProvider.getToolCallbacks())
-        .defaultToolNames(
-            "getCurrentUser",
-            "listBudgetTransactions",
-            "listBudgetCategories",
-            "getBudgetMonthlySummary",
-        )
+        .defaultToolCallbacks(*toolCallbackProvider.toolCallbacks)
         .build()
 
     private fun sanitizeMessage(message: String): String {

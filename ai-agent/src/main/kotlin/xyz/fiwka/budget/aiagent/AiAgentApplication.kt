@@ -10,5 +10,8 @@ import xyz.fiwka.budget.aiagent.configuration.AiAgentProperties
 class AiAgentApplication
 
 fun main(args: Array<String>) {
+    System.setProperty("sun.net.client.defaultConnectTimeout", "600000")
+    System.setProperty("sun.net.client.defaultReadTimeout", "600000")
+
     SpringApplication.run(AiAgentApplication::class.java, *args)
 }
