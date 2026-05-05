@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Highcharts from 'highcharts'
@@ -207,6 +207,19 @@ export function BudgetWorkspacePage() {
     ? analyticsSeries.reduce((acc, item) => acc + Number(item.savingsRate), 0) / analyticsSeries.length
     : 0
   const latestSummary = analyticsSeries[analyticsSeries.length - 1]
+  const isDarkTheme = document.documentElement.dataset.theme === 'dark'
+  const chartTextColor = isDarkTheme ? '#e6edf7' : '#1b1f2a'
+  const chartMutedTextColor = isDarkTheme ? '#c4d0e2' : '#3d475a'
+  const chartGridColor = isDarkTheme ? '#324158' : '#c8d2df'
+  const legendStyle = { color: chartTextColor, fontWeight: '600' }
+  const axisLabelStyle = { color: chartMutedTextColor, fontSize: '12px' }
+  const axisTitleStyle = { color: chartTextColor, fontWeight: '600' }
+  const pieData = (latestSummary?.topExpenseCategories ?? [])
+    .map((item) => ({
+      name: categoryMap.get(item.categoryId)?.name ?? item.categoryId.slice(0, 8),
+      y: Math.abs(Number(item.total)),
+    }))
+    .filter((item) => Number.isFinite(item.y) && item.y > 0)
 
   return (
     <main className="screen">
@@ -289,10 +302,10 @@ export function BudgetWorkspacePage() {
           </div>
 
           <div className="analytics-kpi">
-            <article className="kpi"><span>Доход</span><strong>{moneyLabel(analyticsTotals.income)}</strong></article>
-            <article className="kpi"><span>Расход</span><strong>{moneyLabel(analyticsTotals.expenses)}</strong></article>
-            <article className="kpi"><span>Баланс</span><strong>{moneyLabel(analyticsTotals.balance)}</strong></article>
-            <article className="kpi"><span>Средняя норма сбережений</span><strong>{avgSavingsRate.toFixed(2)}%</strong></article>
+            <article className="kpi kpi-income"><span>Доход</span><strong>{moneyLabel(analyticsTotals.income)}</strong></article>
+            <article className="kpi kpi-expense"><span>Расход</span><strong>{moneyLabel(analyticsTotals.expenses)}</strong></article>
+            <article className="kpi kpi-balance"><span>Баланс</span><strong>{moneyLabel(analyticsTotals.balance)}</strong></article>
+            <article className="kpi kpi-savings"><span>Средняя норма сбережений</span><strong>{avgSavingsRate.toFixed(2)}%</strong></article>
           </div>
 
           {analyticsQuery.isLoading && <p className="muted">Загружаем аналитику...</p>}
@@ -301,10 +314,15 @@ export function BudgetWorkspacePage() {
               <HighchartsReact
                 highcharts={Highcharts}
                 options={{
-                  chart: { type: 'line', backgroundColor: 'transparent' },
-                  title: { text: 'Доходы, расходы и баланс' },
-                  xAxis: { categories: periodLabels },
-                  yAxis: { title: { text: 'Сумма (RUB)' } },
+                  chart: { type: 'line', backgroundColor: 'transparent', height: 300 },
+                  title: { text: 'Доходы, расходы и баланс', style: { color: chartTextColor, fontWeight: '700' } },
+                  legend: { itemStyle: legendStyle, itemHoverStyle: legendStyle },
+                  xAxis: { categories: periodLabels, labels: { style: axisLabelStyle }, lineColor: chartGridColor, tickColor: chartGridColor },
+                  yAxis: {
+                    title: { text: 'Сумма (RUB)', style: axisTitleStyle },
+                    labels: { style: axisLabelStyle },
+                    gridLineColor: chartGridColor,
+                  },
                   credits: { enabled: false },
                   series: [
                     { type: 'line', name: 'Доход', data: analyticsSeries.map((x) => Number(x.income)), color: '#16a34a' },
@@ -316,10 +334,15 @@ export function BudgetWorkspacePage() {
               <HighchartsReact
                 highcharts={Highcharts}
                 options={{
-                  chart: { type: 'column', backgroundColor: 'transparent' },
-                  title: { text: 'Норма сбережений по месяцам' },
-                  xAxis: { categories: periodLabels },
-                  yAxis: { title: { text: '%' } },
+                  chart: { type: 'column', backgroundColor: 'transparent', height: 300 },
+                  title: { text: 'Норма сбережений по месяцам', style: { color: chartTextColor, fontWeight: '700' } },
+                  legend: { itemStyle: legendStyle, itemHoverStyle: legendStyle },
+                  xAxis: { categories: periodLabels, labels: { style: axisLabelStyle }, lineColor: chartGridColor, tickColor: chartGridColor },
+                  yAxis: {
+                    title: { text: '%', style: axisTitleStyle },
+                    labels: { style: axisLabelStyle },
+                    gridLineColor: chartGridColor,
+                  },
                   credits: { enabled: false },
                   series: [{ type: 'column', name: 'Savings rate', data: analyticsSeries.map((x) => Number(x.savingsRate)), color: '#0b8a6d' }],
                 }}
@@ -327,22 +350,35 @@ export function BudgetWorkspacePage() {
               <HighchartsReact
                 highcharts={Highcharts}
                 options={{
-                  chart: { type: 'pie', backgroundColor: 'transparent' },
-                  title: { text: `Топ категорий расходов (${latestSummary?.period ?? ''})` },
+                  chart: { type: 'pie', backgroundColor: 'transparent', height: 300 },
+                  title: { text: `Топ категорий расходов (${latestSummary?.period ?? ''})`, style: { color: chartTextColor, fontWeight: '700' } },
+                  legend: { itemStyle: legendStyle, itemHoverStyle: legendStyle },
+                  tooltip: {
+                    style: { color: chartTextColor },
+                  },
                   credits: { enabled: false },
+                  plotOptions: {
+                    pie: {
+                      dataLabels: {
+                        enabled: true,
+                        style: { color: chartTextColor, textOutline: 'none', fontWeight: '600' },
+                        format: '{point.name}: {point.percentage:.1f}%',
+                      },
+                    },
+                  },
                   series: [
                     {
                       type: 'pie',
                       name: 'Доля',
-                      data: (latestSummary?.topExpenseCategories ?? []).map((item) => ({
-                        name: categoryMap.get(item.categoryId)?.name ?? item.categoryId.slice(0, 8),
-                        y: Number(item.total),
-                      })),
+                      data: pieData,
                     },
                   ],
                 }}
               />
             </div>
+          )}
+          {!analyticsQuery.isLoading && analyticsSeries.length > 0 && pieData.length === 0 && (
+            <p className="muted">Для pie-диаграммы нет корректных данных (только нули или пусто).</p>
           )}
           {!analyticsQuery.isLoading && analyticsSeries.length === 0 && <p className="muted">Нет данных за выбранный период.</p>}
         </section>

@@ -3,7 +3,11 @@ plugins {
 }
 
 dependencies {
+    implementation(platform("org.springframework.ai:spring-ai-bom:1.1.5"))
+    implementation("org.springframework:spring-webflux")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
     implementation("com.github.ben-manes.caffeine:caffeine")
 }
 

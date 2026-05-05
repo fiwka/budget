@@ -101,14 +101,27 @@ th { color: var(--muted); font-weight: 600; }
 .chart-b { background: linear-gradient(180deg, rgba(249,173,88,.85), rgba(249,173,88,.25)); }
 .chart-c { background: linear-gradient(180deg, rgba(95,140,255,.8), rgba(95,140,255,.2)); }
 .charts-real > div {
-  min-height: 320px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  height: 340px;
+  min-height: 340px;
+  min-width: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 92%, #ffffff 8%);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, var(--text) 30%);
   border-radius: 12px;
   padding: 0.4rem;
 }
+.charts-real .highcharts-container,
+.charts-real .highcharts-root {
+  max-width: 100% !important;
+}
+.charts-real > div > div,
+.charts-real .highcharts-container,
+.charts-real .highcharts-root,
+.charts-real .highcharts-series-group {
+  height: 100% !important;
+}
 
-.analytics-dashboard { display: grid; gap: 1rem; }
+.analytics-dashboard { display: grid; gap: 1rem; min-width: 0; }
 .analytics-controls { display: grid; gap: 0.7rem; }
 .analytics-kpi {
   display: grid;
@@ -116,15 +129,27 @@ th { color: var(--muted); font-weight: 600; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .kpi {
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 65%, var(--text) 35%);
   border-radius: 12px;
   padding: 0.8rem;
   display: grid;
   gap: 0.35rem;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 40%, transparent), transparent);
+  background: color-mix(in srgb, var(--surface) 88%, var(--accent-soft) 12%);
 }
 .kpi span { color: var(--muted); font-size: 0.88rem; }
 .kpi strong { font-size: 1.08rem; }
+.kpi-income {
+  background: linear-gradient(180deg, color-mix(in srgb, #16a34a 28%, var(--surface) 72%), var(--surface));
+}
+.kpi-expense {
+  background: linear-gradient(180deg, color-mix(in srgb, #dc2626 24%, var(--surface) 76%), var(--surface));
+}
+.kpi-balance {
+  background: linear-gradient(180deg, color-mix(in srgb, #2563eb 24%, var(--surface) 76%), var(--surface));
+}
+.kpi-savings {
+  background: linear-gradient(180deg, color-mix(in srgb, #0b8a6d 26%, var(--surface) 74%), var(--surface));
+}
 
 .toast-root {
   position: fixed;

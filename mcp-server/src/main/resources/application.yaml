@@ -1,6 +1,18 @@
 spring:
   application:
     name: mcp-server
+  ai:
+    mcp:
+      server:
+        name: budget-mcp-server
+        version: 1.0.0
+        type: sync
+
+app:
+  services:
+    data-service-url: http://data-service
+    analytics-service-url: http://analytics-service
+
 eureka:
   client:
     service-url:
