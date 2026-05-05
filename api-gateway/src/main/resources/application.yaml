@@ -35,6 +35,8 @@ spring:
                 - Path=/api/ai/**
               filters:
                 - RemoveRequestHeader=Cookie
+              metadata:
+                response-timeout: -1
           globalcors:
            cors-configurations:
                '[/**]':
