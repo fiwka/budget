@@ -3,7 +3,10 @@ import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Highcharts from 'highcharts'
 import { HighchartsReact } from 'highcharts-react-official'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useNavigate, useParams } from 'react-router-dom'
+import * as assistantApi from '../api/assistant'
 import * as analyticsApi from '../api/analytics'
 import * as budgetApi from '../api/budget'
 import * as categoryApi from '../api/category'
@@ -18,6 +21,7 @@ import { humanizeError } from '../utils/uiText'
 type Tab = 'transactions' | 'categories' | 'assistant' | 'analytics' | 'settings'
 const allowedTabs: Tab[] = ['transactions', 'categories', 'assistant', 'analytics', 'settings']
 type AnalyticsPreset = '3m' | '6m' | '12m' | 'custom'
+type AssistantMessage = { id: string; role: 'user' | 'assistant'; content: string }
 
 function toMoneyAmount(raw: FormDataEntryValue | null) {
   const parsed = Number(raw)
@@ -57,6 +61,16 @@ export function BudgetWorkspacePage() {
   const [analyticsPreset, setAnalyticsPreset] = useState<AnalyticsPreset>('6m')
   const [analyticsToPeriod, setAnalyticsToPeriod] = useState(() => toMonthInputValue(new Date()))
   const [analyticsFromPeriod, setAnalyticsFromPeriod] = useState(() => shiftPeriod(toMonthInputValue(new Date()), -5))
+  const [chatSessionId, setChatSessionId] = useState<string | null>(null)
+  const [assistantInput, setAssistantInput] = useState('')
+  const [assistantSending, setAssistantSending] = useState(false)
+  const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: 'Привет! Я помогу с анализом личного бюджета. Спроси, например: **топ расходов за месяц**.',
+    },
+  ])
 
   if (!budgetId) return <div className="screen">Budget id is required</div>
   const id = budgetId
@@ -108,6 +122,8 @@ export function BudgetWorkspacePage() {
       budgetApi.updateBudget(bid, { name, description }),
     onSuccess: invalidateCurrent,
   })
+  const createAssistantSession = useMutation({ mutationFn: assistantApi.createSession })
+  const clearAssistantSession = useMutation({ mutationFn: assistantApi.deleteSession })
 
   useEffect(() => {
     if (budgetQuery.error) toast.error(humanizeError(budgetQuery.error, 'Не удалось загрузить бюджет.'))
@@ -188,6 +204,62 @@ export function BudgetWorkspacePage() {
       toast.success('Транзакция обновлена.')
     } catch (err) {
       toast.error(humanizeError(err, 'Не удалось обновить транзакцию.'))
+    }
+  }
+
+  async function sendAssistantMessage() {
+    const message = assistantInput.trim()
+    if (!message || assistantSending) return
+
+    const userMessage: AssistantMessage = { id: `u-${Date.now()}`, role: 'user', content: message }
+    const assistantMessageId = `a-${Date.now()}`
+    setAssistantInput('')
+    setAssistantSending(true)
+    setAssistantMessages((prev) => [...prev, userMessage, { id: assistantMessageId, role: 'assistant', content: '' }])
+
+    try {
+      let sessionId = chatSessionId
+      if (!sessionId) {
+        const created = await createAssistantSession.mutateAsync(id)
+        sessionId = created.sessionId
+        setChatSessionId(sessionId)
+      }
+
+      await assistantApi.streamMessage(sessionId, message, (chunk) => {
+        setAssistantMessages((prev) =>
+          prev.map((item) => (item.id === assistantMessageId ? { ...item, content: item.content + chunk } : item))
+        )
+      })
+    } catch (err) {
+      setAssistantMessages((prev) =>
+        prev.map((item) =>
+          item.id === assistantMessageId
+            ? { ...item, content: `Не удалось получить ответ: ${humanizeError(err, 'Ошибка ассистента.')}` }
+            : item
+        )
+      )
+      toast.error(humanizeError(err, 'Не удалось отправить сообщение ассистенту.'))
+    } finally {
+      setAssistantSending(false)
+    }
+  }
+
+  async function onClearAssistantSession() {
+    try {
+      if (chatSessionId) {
+        await clearAssistantSession.mutateAsync(chatSessionId)
+      }
+      setChatSessionId(null)
+      setAssistantMessages([
+        {
+          id: `welcome-${Date.now()}`,
+          role: 'assistant',
+          content: 'Сессия очищена. Готов продолжать работу с бюджетом.',
+        },
+      ])
+      toast.success('Сессия ассистента очищена.')
+    } catch (err) {
+      toast.error(humanizeError(err, 'Не удалось очистить сессию ассистента.'))
     }
   }
 
@@ -281,7 +353,48 @@ export function BudgetWorkspacePage() {
         </section>
       )}
 
-      {currentTab === 'assistant' && <section className="card"><h3>ИИ-ассистент</h3><p>Интерфейс подготовлен. Логика чата будет подключаться через API Gateway отдельным endpoint-ом.</p><div className="chat-mock"><div className="chat-line bot">Привет! Я помогу с анализом бюджета.</div><div className="chat-line user">Покажи топ-3 категории расходов за месяц.</div><div className="chat-line bot">Функционал скоро будет доступен.</div></div></section>}
+      {currentTab === 'assistant' && (
+        <section className="card assistant-card">
+          <div className="assistant-header">
+            <div>
+              <h3>ИИ-ассистент</h3>
+              <p className="muted">Контекст привязан к текущему бюджету. Поддерживается Markdown.</p>
+            </div>
+            <button type="button" onClick={() => void onClearAssistantSession()} disabled={assistantSending}>
+              Очистить сессию
+            </button>
+          </div>
+          <div className="assistant-chat">
+            {assistantMessages.map((item) => (
+              <div key={item.id} className={`assistant-line ${item.role === 'assistant' ? 'assistant-bot' : 'assistant-user'}`}>
+                {item.role === 'assistant' ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content || (assistantSending ? '...' : '')}</ReactMarkdown>
+                ) : (
+                  <p>{item.content}</p>
+                )}
+              </div>
+            ))}
+          </div>
+          <form
+            className="assistant-input"
+            onSubmit={(e) => {
+              e.preventDefault()
+              void sendAssistantMessage()
+            }}
+          >
+            <textarea
+              value={assistantInput}
+              onChange={(e) => setAssistantInput(e.target.value)}
+              placeholder="Спроси про баланс, топ расходов, категории, тренды..."
+              maxLength={4000}
+              disabled={assistantSending}
+            />
+            <button type="submit" disabled={assistantSending || !assistantInput.trim()}>
+              {assistantSending ? 'Отправка...' : 'Отправить'}
+            </button>
+          </form>
+        </section>
+      )}
 
       {currentTab === 'analytics' && (
         <section className="card analytics-dashboard">

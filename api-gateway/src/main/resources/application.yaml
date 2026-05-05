@@ -29,6 +29,12 @@ spring:
                 - Path=/api/analytics/**
               filters:
                 - RemoveRequestHeader=Cookie
+            - id: ai-agent-protected
+              uri: lb://ai-agent
+              predicates:
+                - Path=/api/ai/**
+              filters:
+                - RemoveRequestHeader=Cookie
           globalcors:
            cors-configurations:
                '[/**]':

@@ -1,6 +1,34 @@
 spring:
   application:
     name: ai-agent
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  ai:
+    openai:
+      base-url: ${OPENAI_COMPAT_BASE_URL}
+      api-key: ${OPENAI_COMPAT_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_COMPAT_MODEL}
+          temperature: ${OPENAI_CHAT_TEMPERATURE:0.2}
+          max-completion-tokens: ${OPENAI_CHAT_MAX_TOKENS:1200}
+    mcp:
+      client:
+        type: sync
+        request-timeout: 30s
+        sse:
+          connections:
+            budget-mcp:
+              url: ${MCP_SERVER_SSE_URL:http://mcp-server/sse}
+
+app:
+  ai-agent:
+    session-ttl: ${AI_AGENT_SESSION_TTL:30m}
+    max-message-length: ${AI_AGENT_MAX_MESSAGE_LENGTH:4000}
+
 eureka:
   client:
     service-url:
