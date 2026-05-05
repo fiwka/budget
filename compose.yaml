@@ -31,6 +31,46 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+  mcp-server:
+    image: ghcr.io/fiwka/mcp-server:latest
+    hostname: mcp-server
+    networks:
+      - budget
+    environment:
+      EUREKA_SERVER: eureka:8761
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+  ai-agent:
+    image: ghcr.io/fiwka/ai-agent:latest
+    hostname: ai-agent
+    networks:
+      - budget
+    environment:
+      OPENAI_COMPAT_BASE_URL: http://host.docker.internal:1234
+      OPENAI_COMPAT_API_KEY: dummy-key
+      OPENAI_COMPAT_MODEL: google/gemma-4-e4b
+      REDIS_HOST: redis
+      EUREKA_SERVER: eureka:8761
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    depends_on:
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
   redis:
     image: redis:latest
     hostname: redis
