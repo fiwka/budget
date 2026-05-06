@@ -68,12 +68,19 @@ class BudgetChatController(
         @RequestBody request: ChatMessageRequest,
     ): Flux<ServerSentEvent<ChatStreamChunk>> = userContextService.resolveUser(authorizationHeader)
         .flatMapMany { user ->
-            budgetChatService.stream(sessionId, user.id, authorizationHeader, request.message)
-        }
-        .map { chunk ->
-            ServerSentEvent.builder(ChatStreamChunk(chunk))
-                .event("chunk")
-                .build()
+            Flux.concat(
+                Flux.just("Подключаюсь к модели и бюджету...").map { status ->
+                    ServerSentEvent.builder(ChatStreamChunk(status))
+                        .event("status")
+                        .build()
+                },
+                budgetChatService.stream(sessionId, user.id, authorizationHeader, request.message)
+                    .map { chunk ->
+                        ServerSentEvent.builder(ChatStreamChunk(chunk))
+                            .event("chunk")
+                            .build()
+                    },
+            )
         }
         .concatWith(Flux.just(ServerSentEvent.builder(ChatStreamChunk(""))
             .event("done")

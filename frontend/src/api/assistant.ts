@@ -30,7 +30,8 @@ export async function sendMessage(sessionId: string, message: string): Promise<C
 export async function streamMessage(
   sessionId: string,
   message: string,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
+  onStatus?: (status: string) => void
 ): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/ai/chat/sessions/${sessionId}/messages/stream`, {
     method: 'POST',
@@ -38,6 +39,7 @@ export async function streamMessage(
     headers: {
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
+      'Cache-Control': 'no-cache',
     },
     body: JSON.stringify({ message }),
   })
@@ -55,10 +57,45 @@ export async function streamMessage(
   const decoder = new TextDecoder('utf-8')
   let buffer = ''
   let currentEvent = 'message'
+  let currentData: string[] = []
+
+  const parsePayload = (raw: string) => {
+    try {
+      const parsed = JSON.parse(raw) as { content?: string }
+      return parsed.content ?? ''
+    } catch {
+      return raw
+    }
+  }
+
+  const flushEvent = () => {
+    if (currentData.length === 0) {
+      currentEvent = 'message'
+      return false
+    }
+
+    const payload = parsePayload(currentData.join('\n'))
+    const eventName = currentEvent
+    currentEvent = 'message'
+    currentData = []
+
+    if (eventName === 'done') return true
+    if (!payload) return false
+    if (eventName === 'status') {
+      onStatus?.(payload)
+      return false
+    }
+
+    onChunk(payload)
+    return false
+  }
 
   while (true) {
     const { done, value } = await reader.read()
-    if (done) break
+    if (done) {
+      flushEvent()
+      break
+    }
 
     buffer += decoder.decode(value, { stream: true })
     const lines = buffer.split(/\r?\n/)
@@ -71,19 +108,12 @@ export async function streamMessage(
       }
 
       if (line.startsWith('data:')) {
-        const raw = line.slice(5).trim()
-        if (!raw) continue
-        if (currentEvent === 'done') return
-        try {
-          const parsed = JSON.parse(raw) as { content?: string }
-          if (parsed.content) onChunk(parsed.content)
-        } catch {
-          onChunk(raw)
-        }
+        currentData.push(line.slice(5).trimStart())
+        continue
       }
 
       if (line.trim() === '') {
-        currentEvent = 'message'
+        if (flushEvent()) return
       }
     }
   }

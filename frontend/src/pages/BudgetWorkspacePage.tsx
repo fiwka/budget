@@ -64,6 +64,7 @@ export function BudgetWorkspacePage() {
   const [chatSessionId, setChatSessionId] = useState<string | null>(null)
   const [assistantInput, setAssistantInput] = useState('')
   const [assistantSending, setAssistantSending] = useState(false)
+  const [assistantStatus, setAssistantStatus] = useState('')
   const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
     {
       id: 'welcome',
@@ -215,6 +216,7 @@ export function BudgetWorkspacePage() {
     const assistantMessageId = `a-${Date.now()}`
     setAssistantInput('')
     setAssistantSending(true)
+    setAssistantStatus('Отправляю сообщение...')
     setAssistantMessages((prev) => [...prev, userMessage, { id: assistantMessageId, role: 'assistant', content: '' }])
 
     try {
@@ -225,11 +227,17 @@ export function BudgetWorkspacePage() {
         setChatSessionId(sessionId)
       }
 
-      await assistantApi.streamMessage(sessionId, message, (chunk) => {
-        setAssistantMessages((prev) =>
-          prev.map((item) => (item.id === assistantMessageId ? { ...item, content: item.content + chunk } : item))
-        )
-      })
+      await assistantApi.streamMessage(
+        sessionId,
+        message,
+        (chunk) => {
+          setAssistantStatus('')
+          setAssistantMessages((prev) =>
+            prev.map((item) => (item.id === assistantMessageId ? { ...item, content: item.content + chunk } : item))
+          )
+        },
+        setAssistantStatus
+      )
     } catch (err) {
       setAssistantMessages((prev) =>
         prev.map((item) =>
@@ -241,6 +249,7 @@ export function BudgetWorkspacePage() {
       toast.error(humanizeError(err, 'Не удалось отправить сообщение ассистенту.'))
     } finally {
       setAssistantSending(false)
+      setAssistantStatus('')
     }
   }
 
@@ -368,7 +377,9 @@ export function BudgetWorkspacePage() {
             {assistantMessages.map((item) => (
               <div key={item.id} className={`assistant-line ${item.role === 'assistant' ? 'assistant-bot' : 'assistant-user'}`}>
                 {item.role === 'assistant' ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content || (assistantSending ? '...' : '')}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.content || (assistantSending ? assistantStatus || 'Жду первый фрагмент ответа...' : '')}
+                  </ReactMarkdown>
                 ) : (
                   <p>{item.content}</p>
                 )}

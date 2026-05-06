@@ -10,6 +10,7 @@ spring:
     openai:
       base-url: ${OPENAI_COMPAT_BASE_URL}
       api-key: ${OPENAI_COMPAT_API_KEY}
+      timeout: ${OPENAI_COMPAT_TIMEOUT:10m}
       chat:
         options:
           model: ${OPENAI_COMPAT_MODEL}
@@ -18,7 +19,7 @@ spring:
     mcp:
       client:
         type: sync
-        request-timeout: 30s
+        request-timeout: ${AI_AGENT_MCP_REQUEST_TIMEOUT:10m}
         sse:
           connections:
             budget-mcp:
