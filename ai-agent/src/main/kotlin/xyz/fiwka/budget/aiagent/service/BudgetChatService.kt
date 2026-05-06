@@ -94,6 +94,7 @@ class BudgetChatService(
         3) Use MCP tools only to help with budget-related questions and only for the provided budget and user context.
         4) If request is unrelated to personal budgeting, politely refuse and ask a budget-focused question.
         5) Keep answers concise, numeric when possible, and action-oriented.
+        6) Never show raw category UUIDs to the user when a category name can be resolved. Use listBudgetCategories or getCategoryById to replace categoryId values with category names before answering.
     """.trimIndent()
 
     private fun buildUserPrompt(session: ChatSession, message: String, accessToken: String): String = """
@@ -109,6 +110,7 @@ class BudgetChatService(
         Tool usage requirements:
         - Always call getCurrentUser(accessToken) before other tools and ensure user matches expected context.
         - For budget data, use tool arguments with the provided budgetId and accessToken.
+        - When transactions or analytics contain categoryId values, resolve them to category names before the final answer.
         - If verification fails, stop and return an authorization error message.
     """.trimIndent()
 }

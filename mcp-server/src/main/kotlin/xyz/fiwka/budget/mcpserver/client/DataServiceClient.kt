@@ -62,4 +62,12 @@ class DataServiceClient(
             .retrieve()
             .bodyToMono(object : ParameterizedTypeReference<PageResponse<CategoryResponse>>() {})
             .block()!!
+
+    fun readCategory(categoryId: UUID, accessToken: String): CategoryResponse =
+        webClient.get()
+            .uri("/api/category/{categoryId}", categoryId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
+            .retrieve()
+            .bodyToMono<CategoryResponse>()
+            .block()!!
 }

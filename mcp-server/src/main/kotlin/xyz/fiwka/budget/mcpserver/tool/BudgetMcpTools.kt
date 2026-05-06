@@ -49,6 +49,16 @@ class BudgetMcpTools(
             size = size,
         )
 
+    @Tool(description = "Get one budget category by category id. Use this to resolve categoryId values to human-readable category names. Requires access token")
+    fun getCategoryById(
+        categoryId: UUID,
+        accessToken: String,
+    ): CategoryResponse =
+        dataServiceClient.readCategory(
+            categoryId = categoryId,
+            accessToken = accessToken,
+        )
+
     @Tool(description = "Get monthly budget analytics from analytics-service. Optional period format: YYYY-MM")
     fun getBudgetMonthlySummary(
         budgetId: UUID,

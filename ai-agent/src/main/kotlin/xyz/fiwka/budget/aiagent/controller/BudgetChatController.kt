@@ -4,6 +4,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
+import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -63,26 +64,37 @@ class BudgetChatController(
 
     @PostMapping("/sessions/{sessionId}/messages/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun stream(
+        response: ServerHttpResponse,
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorizationHeader: String,
         @PathVariable sessionId: UUID,
         @RequestBody request: ChatMessageRequest,
-    ): Flux<ServerSentEvent<ChatStreamChunk>> = userContextService.resolveUser(authorizationHeader)
-        .flatMapMany { user ->
-            Flux.concat(
-                Flux.just("Подключаюсь к модели и бюджету...").map { status ->
-                    ServerSentEvent.builder(ChatStreamChunk(status))
-                        .event("status")
-                        .build()
-                },
-                budgetChatService.stream(sessionId, user.id, authorizationHeader, request.message)
-                    .map { chunk ->
-                        ServerSentEvent.builder(ChatStreamChunk(chunk))
-                            .event("chunk")
+    ): Flux<ServerSentEvent<ChatStreamChunk>> {
+        response.headers.set(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform")
+        response.headers.add("X-Accel-Buffering", "no")
+
+        return userContextService.resolveUser(authorizationHeader)
+            .flatMapMany { user ->
+                Flux.concat(
+                    Flux.just("Подключаюсь к модели и бюджету...").map { status ->
+                        ServerSentEvent.builder(ChatStreamChunk(status))
+                            .event("status")
                             .build()
                     },
+                    budgetChatService.stream(sessionId, user.id, authorizationHeader, request.message)
+                        .filter { chunk -> chunk.isNotEmpty() }
+                        .map { chunk ->
+                            ServerSentEvent.builder(ChatStreamChunk(chunk))
+                                .event("chunk")
+                                .build()
+                        },
+                )
+            }
+            .concatWith(
+                Flux.just(
+                    ServerSentEvent.builder(ChatStreamChunk(""))
+                        .event("done")
+                        .build()
+                )
             )
-        }
-        .concatWith(Flux.just(ServerSentEvent.builder(ChatStreamChunk(""))
-            .event("done")
-            .build()))
+    }
 }
