@@ -27,17 +27,27 @@ class AuthSessionService(
             .doOnNext { saveTokens(session, it) }
     }
 
-    fun resolveAccessToken(session: WebSession): Mono<String> {
+    fun ensureAuthenticated(session: WebSession): Mono<AuthSessionTokens> {
         val tokens = readTokens(session) ?: return Mono.empty()
 
         if (!jwtExpiryService.isExpiringSoon(tokens.accessToken)) {
-            return Mono.just(tokens.accessToken)
+            return Mono.just(tokens)
         }
 
         return refresh(session)
-            .map { it.accessToken }
+            .map { response ->
+                AuthSessionTokens(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    tokenType = response.tokenType
+                )
+            }
             .switchIfEmpty(session.invalidate().then(Mono.empty()))
             .onErrorResume { session.invalidate().then(Mono.empty()) }
+    }
+
+    fun resolveAccessToken(session: WebSession): Mono<String> {
+        return ensureAuthenticated(session).map { it.accessToken }
     }
 
     fun isAuthenticated(session: WebSession): Boolean = readTokens(session) != null

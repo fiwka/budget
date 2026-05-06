@@ -49,7 +49,7 @@ app:
     jwt:
       secret: ${APP_JWT_SECRET:change-this-secret-key-to-at-least-32-characters}
       access-expiration-ms: ${APP_JWT_ACCESS_EXPIRATION_MS:300000}
-      refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS:1800000}
+      refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS:604800000}
   kafka:
     topic:
       transaction-created: transaction-created

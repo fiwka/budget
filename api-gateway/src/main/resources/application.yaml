@@ -54,7 +54,7 @@ spring:
 server:
   reactive:
     session:
-      timeout: ${SESSION_TIMEOUT:30m}
+      timeout: ${SESSION_TIMEOUT:7d}
 
 eureka:
   client:

@@ -20,7 +20,7 @@ class JwtTokenService(
     private val secret: String,
     @Value("\${app.security.jwt.access-expiration-ms:300000}")
     private val accessExpirationMs: Long,
-    @Value("\${app.security.jwt.refresh-expiration-ms:1800000}")
+    @Value("\${app.security.jwt.refresh-expiration-ms:604800000}")
     private val refreshExpirationMs: Long
 ) : GenerateJwtTokenOutputPort, GenerateRefreshTokenOutputPort, ReadRefreshTokenOutputPort {
 

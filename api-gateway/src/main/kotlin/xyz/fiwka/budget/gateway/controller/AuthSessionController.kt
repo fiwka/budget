@@ -34,6 +34,7 @@ class AuthSessionController(
             authSessionService.refresh(session)
                 .map { SessionStatusResponse(authenticated = true, tokenType = it.tokenType) }
                 .defaultIfEmpty(SessionStatusResponse(authenticated = false))
+                .onErrorResume { session.invalidate().thenReturn(SessionStatusResponse(authenticated = false)) }
         }
 
     @PostMapping("/logout")
@@ -44,8 +45,10 @@ class AuthSessionController(
     @GetMapping("/status")
     fun status(exchange: ServerWebExchange): Mono<SessionStatusResponse> = exchange
         .session
-        .map { session ->
-            SessionStatusResponse(authenticated = authSessionService.isAuthenticated(session))
+        .flatMap { session ->
+            authSessionService.ensureAuthenticated(session)
+                .map { SessionStatusResponse(authenticated = true, tokenType = it.tokenType) }
+                .defaultIfEmpty(SessionStatusResponse(authenticated = false))
         }
 }
 

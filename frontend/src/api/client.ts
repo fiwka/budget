@@ -14,6 +14,7 @@ export class ApiError extends Error {
 }
 
 const jsonHeaders = { 'Content-Type': 'application/json' }
+const refreshPath = '/api/session/refresh'
 
 async function parseBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get('content-type') ?? ''
@@ -22,7 +23,25 @@ async function parseBody(response: Response): Promise<unknown> {
   return text ? { detail: text } : null
 }
 
-export async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function refreshSession(): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}${refreshPath}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: jsonHeaders,
+  })
+
+  if (!response.ok) return false
+
+  const body = (await parseBody(response)) as { authenticated?: boolean } | null
+  return body?.authenticated === true
+}
+
+function shouldRetryAfterRefresh(path: string, init: RequestInit): boolean {
+  const method = (init.method ?? 'GET').toUpperCase()
+  return path !== refreshPath && !path.startsWith('/api/session/') && method !== 'DELETE'
+}
+
+export async function request<T>(path: string, init: RequestInit = {}, retryAfterRefresh = true): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
@@ -33,6 +52,11 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
   })
 
   if (!response.ok) {
+    if (response.status === 401 && retryAfterRefresh && shouldRetryAfterRefresh(path, init)) {
+      const refreshed = await refreshSession()
+      if (refreshed) return request<T>(path, init, false)
+    }
+
     const payload = (await parseBody(response)) as ApiProblem | null
     const message = payload?.detail ?? payload?.title ?? `HTTP ${response.status}`
     throw new ApiError(message, response.status, payload)

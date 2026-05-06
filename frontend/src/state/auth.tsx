@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as authApi from '../api/auth'
 import { queryKeys } from '../api/queryKeys'
 
+const sessionRefreshIntervalMs = 4 * 60 * 1000
+
 type AuthContextValue = {
   initialized: boolean
   isAuthenticated: boolean
@@ -21,6 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryKey: queryKeys.session,
     queryFn: authApi.getSessionStatus,
     retry: false,
+    refetchInterval: (query) => query.state.data?.authenticated ? sessionRefreshIntervalMs : false,
+    refetchIntervalInBackground: true,
   })
 
   const userQuery = useQuery({
