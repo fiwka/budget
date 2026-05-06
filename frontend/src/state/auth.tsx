@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const sessionQuery = useQuery({
     queryKey: queryKeys.session,
-    queryFn: authApi.getSessionStatus,
+    queryFn: authApi.keepSessionAlive,
     retry: false,
     refetchInterval: (query) => query.state.data?.authenticated ? sessionRefreshIntervalMs : false,
     refetchIntervalInBackground: true,

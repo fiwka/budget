@@ -19,6 +19,9 @@ class BudgetChatService(
     private val chatSessionStore: ChatSessionStore,
     private val properties: AiAgentProperties,
 ) {
+    private val chatClient: ChatClient = chatClientBuilder
+        .defaultToolCallbacks(*toolCallbackProvider.toolCallbacks)
+        .build()
 
     fun createSession(budgetId: UUID, userId: UUID, username: String): Mono<ChatSession> {
         val session = ChatSession(
@@ -38,7 +41,7 @@ class BudgetChatService(
     fun chat(sessionId: UUID, userId: UUID, bearerToken: String, message: String): Mono<ChatMessageResponse> =
         resolveSession(sessionId, userId)
             .map { session ->
-                val response = chatClient()
+                val response = chatClient
                     .prompt()
                     .system(buildSystemPrompt())
                     .user(buildUserPrompt(session, sanitizeMessage(message), bearerToken.removePrefix("Bearer ").trim()))
@@ -52,7 +55,7 @@ class BudgetChatService(
     fun stream(sessionId: UUID, userId: UUID, bearerToken: String, message: String): Flux<String> =
         resolveSession(sessionId, userId)
             .flatMapMany { session ->
-                chatClient()
+                chatClient
                     .prompt()
                     .system(buildSystemPrompt())
                     .user(buildUserPrompt(session, sanitizeMessage(message), bearerToken.removePrefix("Bearer ").trim()))
@@ -69,10 +72,6 @@ class BudgetChatService(
                 Mono.just(session)
             }
         }
-
-    private fun chatClient(): ChatClient = chatClientBuilder
-        .defaultToolCallbacks(*toolCallbackProvider.toolCallbacks)
-        .build()
 
     private fun sanitizeMessage(message: String): String {
         val normalized = message.replace(Regex("[\\u0000-\\u001F]"), " ").trim()
