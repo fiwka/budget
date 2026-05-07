@@ -1,5 +1,5 @@
 ﻿import { DEFAULT_PAGE_SIZE } from '../config'
-import type { AccessibleBudget, Budget, Page } from '../types/domain'
+import type { AccessibleBudget, Budget, BudgetMember, BudgetRole, Page } from '../types/domain'
 import { request } from './client'
 
 function pageParams(page: number, size = DEFAULT_PAGE_SIZE) {
@@ -30,5 +30,27 @@ export function readBudget(id: string) {
 
 export function deleteBudget(id: string) {
   return request<void>(`/api/budget/${id}`, { method: 'DELETE' })
+}
+
+export function listBudgetMembers(budgetId: string) {
+  return request<BudgetMember[]>(`/api/budget/${budgetId}/members`)
+}
+
+export function addBudgetMember(budgetId: string, payload: { login: string; role: BudgetRole }) {
+  return request<BudgetMember>(`/api/budget/${budgetId}/members`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateBudgetMemberRole(budgetId: string, userId: string, role: BudgetRole) {
+  return request<BudgetMember>(`/api/budget/${budgetId}/members/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ role }),
+  })
+}
+
+export function removeBudgetMember(budgetId: string, userId: string) {
+  return request<void>(`/api/budget/${budgetId}/members/${userId}`, { method: 'DELETE' })
 }
 

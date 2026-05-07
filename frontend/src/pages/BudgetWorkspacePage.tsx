@@ -14,9 +14,11 @@ import { queryKeys } from '../api/queryKeys'
 import * as transactionApi from '../api/transaction'
 import { Pagination } from '../components/Pagination'
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
+import { useAuth } from '../state/auth'
 import { useToast } from '../state/toast'
+import type { BudgetRole } from '../types/domain'
 import { formatForTable, formatIsoDateToInput, moneyLabel, toIsoFromInput } from '../utils/format'
-import { humanizeError } from '../utils/uiText'
+import { humanizeError, roleLabel } from '../utils/uiText'
 
 type Tab = 'transactions' | 'categories' | 'assistant' | 'analytics' | 'settings'
 const allowedTabs: Tab[] = ['transactions', 'categories', 'assistant', 'analytics', 'settings']
@@ -52,6 +54,7 @@ function periodsBetween(from: string, to: string) {
 export function BudgetWorkspacePage() {
   const { budgetId, tab } = useParams<{ budgetId: string; tab: string }>()
   const toast = useToast()
+  const { username } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [txPage, setTxPage] = useState(0)
@@ -91,16 +94,25 @@ export function BudgetWorkspacePage() {
     enabled: currentTab === 'analytics' && analyticsPeriods.length > 0,
     queryFn: async () => Promise.all(analyticsPeriods.map((period) => analyticsApi.getMonthlySummary(id, period))),
   })
+  const membersQuery = useQuery({
+    queryKey: queryKeys.budgetMembers(id),
+    enabled: currentTab === 'settings',
+    queryFn: () => budgetApi.listBudgetMembers(id),
+    retry: false,
+  })
 
   const selectedTransaction = transactionsQuery.data?.items.find((x) => x.id === selectedTransactionId) ?? null
   const selectedCategory = categoriesQuery.data?.items.find((x) => x.id === selectedCategoryId) ?? null
   const categoryMap = useMemo(() => new Map((categoriesQuery.data?.items ?? []).map((c) => [c.id, c])), [categoriesQuery.data?.items])
+  const currentMember = membersQuery.data?.find((member) => member.username === username) ?? null
+  const canAssignAdmin = currentMember?.role === 'OWNER'
 
   const invalidateCurrent = async () => {
     await Promise.all([
       qc.invalidateQueries({ queryKey: queryKeys.transactions(id, txPage) }),
       qc.invalidateQueries({ queryKey: queryKeys.categories(id, catPage) }),
       qc.invalidateQueries({ queryKey: queryKeys.budget(id) }),
+      qc.invalidateQueries({ queryKey: queryKeys.budgetMembers(id) }),
     ])
   }
 
@@ -123,6 +135,18 @@ export function BudgetWorkspacePage() {
       budgetApi.updateBudget(bid, { name, description }),
     onSuccess: invalidateCurrent,
   })
+  const addMember = useMutation({
+    mutationFn: ({ login, role }: { login: string; role: BudgetRole }) => budgetApi.addBudgetMember(id, { login, role }),
+    onSuccess: invalidateCurrent,
+  })
+  const updateMemberRole = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: BudgetRole }) => budgetApi.updateBudgetMemberRole(id, userId, role),
+    onSuccess: invalidateCurrent,
+  })
+  const removeMember = useMutation({
+    mutationFn: (userId: string) => budgetApi.removeBudgetMember(id, userId),
+    onSuccess: invalidateCurrent,
+  })
   const createAssistantSession = useMutation({ mutationFn: assistantApi.createSession })
   const clearAssistantSession = useMutation({ mutationFn: assistantApi.deleteSession })
 
@@ -141,6 +165,12 @@ export function BudgetWorkspacePage() {
   useEffect(() => {
     if (analyticsQuery.error) toast.error(humanizeError(analyticsQuery.error, 'Не удалось загрузить аналитику.'))
   }, [analyticsQuery.error, toast])
+
+  useEffect(() => {
+    if (membersQuery.error && currentTab === 'settings') {
+      toast.error(humanizeError(membersQuery.error, 'Не удалось загрузить участников бюджета.'))
+    }
+  }, [currentTab, membersQuery.error, toast])
 
   async function onCreateCategory(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -269,6 +299,39 @@ export function BudgetWorkspacePage() {
       toast.success('Сессия ассистента очищена.')
     } catch (err) {
       toast.error(humanizeError(err, 'Не удалось очистить сессию ассистента.'))
+    }
+  }
+
+  async function onAddMember(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = new FormData(e.currentTarget)
+    try {
+      await addMember.mutateAsync({
+        login: String(form.get('login')).trim(),
+        role: String(form.get('role')) as BudgetRole,
+      })
+      e.currentTarget.reset()
+      toast.success('Участник добавлен.')
+    } catch (err) {
+      toast.error(humanizeError(err, 'Не удалось добавить участника.'))
+    }
+  }
+
+  async function onChangeMemberRole(userId: string, role: BudgetRole) {
+    try {
+      await updateMemberRole.mutateAsync({ userId, role })
+      toast.success('Роль участника обновлена.')
+    } catch (err) {
+      toast.error(humanizeError(err, 'Не удалось изменить роль участника.'))
+    }
+  }
+
+  async function onRemoveMember(userId: string) {
+    try {
+      await removeMember.mutateAsync(userId)
+      toast.success('Участник удален из бюджета.')
+    } catch (err) {
+      toast.error(humanizeError(err, 'Не удалось удалить участника.'))
     }
   }
 
@@ -508,16 +571,83 @@ export function BudgetWorkspacePage() {
         </section>
       )}
 
-      {currentTab === 'settings' && budgetQuery.data && <section className="card"><h3>Настройки бюджета</h3><form className="form-grid" onSubmit={async (e) => {
-        e.preventDefault()
-        const form = new FormData(e.currentTarget)
-        try {
-          await updateBudget.mutateAsync({ id, name: String(form.get('name')), description: String(form.get('description')) })
-          toast.success('Настройки бюджета сохранены.')
-        } catch (err) {
-          toast.error(humanizeError(err, 'Не удалось сохранить настройки бюджета.'))
-        }
-      }}><label>Название<input name="name" defaultValue={budgetQuery.data.name} minLength={4} maxLength={255} required /></label><label>Описание<textarea name="description" defaultValue={budgetQuery.data.description} maxLength={1500} required /></label><button type="submit">Сохранить</button></form><p className="muted">Участники/роли: UI будет расширен на следующем этапе.</p></section>}
+      {currentTab === 'settings' && budgetQuery.data && (
+        <section className="grid-2">
+          <article className="card">
+            <h3>Настройки бюджета</h3>
+            <form className="form-grid" onSubmit={async (e) => {
+              e.preventDefault()
+              const form = new FormData(e.currentTarget)
+              try {
+                await updateBudget.mutateAsync({ id, name: String(form.get('name')), description: String(form.get('description')) })
+                toast.success('Настройки бюджета сохранены.')
+              } catch (err) {
+                toast.error(humanizeError(err, 'Не удалось сохранить настройки бюджета.'))
+              }
+            }}>
+              <label>Название<input name="name" defaultValue={budgetQuery.data.name} minLength={4} maxLength={255} required /></label>
+              <label>Описание<textarea name="description" defaultValue={budgetQuery.data.description} maxLength={1500} required /></label>
+              <button type="submit">Сохранить</button>
+            </form>
+          </article>
+
+          <article className="card">
+            <h3>Добавить участника</h3>
+            <form className="form-grid" onSubmit={(e) => void onAddMember(e)}>
+              <label>Username или email<input name="login" maxLength={255} required /></label>
+              <label>Роль<select name="role" defaultValue="READER">
+                <option value="READER">{roleLabel('READER')}</option>
+                <option value="EDITOR">{roleLabel('EDITOR')}</option>
+                {canAssignAdmin && <option value="ADMIN">{roleLabel('ADMIN')}</option>}
+              </select></label>
+              <button type="submit" disabled={addMember.isPending}>Добавить</button>
+            </form>
+            <p className="muted">Владельца передать нельзя. Администраторов назначает и меняет только владелец.</p>
+          </article>
+
+          <article className="card span-2">
+            <h3>Участники и роли</h3>
+            {membersQuery.isLoading && <p className="muted">Загружаем участников...</p>}
+            {membersQuery.error && <p className="muted">Управление участниками доступно администраторам и владельцу.</p>}
+            {membersQuery.data && (
+              <table>
+                <thead><tr><th>Пользователь</th><th>Email</th><th>Роль</th><th>Действия</th></tr></thead>
+                <tbody>{membersQuery.data.map((member) => {
+                  const isSelf = member.username === username
+                  const isOwner = member.role === 'OWNER'
+                  const canEditMember = !isSelf && !isOwner && (canAssignAdmin || member.role !== 'ADMIN')
+                  return (
+                    <tr key={member.userId}>
+                      <td>{member.username}</td>
+                      <td>{member.email}</td>
+                      <td>{roleLabel(member.role)}</td>
+                      <td className="row">
+                        <select
+                          value={member.role}
+                          disabled={!canEditMember || updateMemberRole.isPending}
+                          onChange={(e) => void onChangeMemberRole(member.userId, e.target.value as BudgetRole)}
+                        >
+                          <option value="READER">{roleLabel('READER')}</option>
+                          <option value="EDITOR">{roleLabel('EDITOR')}</option>
+                          {(canAssignAdmin || member.role === 'ADMIN') && <option value="ADMIN">{roleLabel('ADMIN')}</option>}
+                          {member.role === 'OWNER' && <option value="OWNER">{roleLabel('OWNER')}</option>}
+                        </select>
+                        <button
+                          type="button"
+                          disabled={!canEditMember || removeMember.isPending}
+                          onClick={() => void onRemoveMember(member.userId)}
+                        >
+                          Удалить
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}</tbody>
+              </table>
+            )}
+          </article>
+        </section>
+      )}
     </main>
   )
 }

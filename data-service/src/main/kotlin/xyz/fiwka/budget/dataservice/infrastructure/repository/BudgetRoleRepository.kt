@@ -15,6 +15,13 @@ interface AccessibleBudgetProjection {
     fun getRoleKey(): Int
 }
 
+interface BudgetMemberProjection {
+    fun getUserId(): UUID
+    fun getUsername(): String
+    fun getEmail(): String
+    fun getRoleKey(): Int
+}
+
 interface BudgetRoleRepository : JpaRepository<BudgetRoleEntity, UUID> {
 
     @Query(
@@ -70,5 +77,46 @@ interface BudgetRoleRepository : JpaRepository<BudgetRoleEntity, UUID> {
         @Param("roleKey") roleKey: Int?,
         pageable: Pageable,
     ): Page<AccessibleBudgetProjection>
+
+    @Query(
+        value = """
+            select
+                u.id as userId,
+                u.username as username,
+                u.email as email,
+                r.key as roleKey
+            from budget_roles br
+            join users u on u.id = br.user_id
+            join roles r on r.id = br.role_id
+            where br.budget_id = :budgetId
+            order by r.key desc, u.username asc, u.id asc
+        """,
+        nativeQuery = true,
+    )
+    fun findBudgetMembers(@Param("budgetId") budgetId: UUID): List<BudgetMemberProjection>
+
+    @Query(
+        value = """
+            select
+                u.id as userId,
+                u.username as username,
+                u.email as email,
+                r.key as roleKey
+            from budget_roles br
+            join users u on u.id = br.user_id
+            join roles r on r.id = br.role_id
+            where br.budget_id = :budgetId and br.user_id = :userId
+            limit 1
+        """,
+        nativeQuery = true,
+    )
+    fun findBudgetMember(
+        @Param("budgetId") budgetId: UUID,
+        @Param("userId") userId: UUID,
+    ): BudgetMemberProjection?
+
+    fun findByBudgetIdAndUserId(budgetId: UUID, userId: UUID): BudgetRoleEntity?
+
+    fun deleteByBudgetIdAndUserId(budgetId: UUID, userId: UUID)
 }
 

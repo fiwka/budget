@@ -17,7 +17,7 @@ export type UserInfo = {
   email: string
 }
 
-export type BudgetRole = 'OWNER' | 'EDITOR' | 'VIEWER' | string
+export type BudgetRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'READER'
 
 export type Budget = {
   id: string
@@ -26,6 +26,13 @@ export type Budget = {
 }
 
 export type AccessibleBudget = Budget & {
+  role: BudgetRole
+}
+
+export type BudgetMember = {
+  userId: string
+  username: string
+  email: string
   role: BudgetRole
 }
 
