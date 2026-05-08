@@ -41,6 +41,15 @@ function shiftPeriod(period: string, deltaMonths: number) {
   return `${base.getUTCFullYear()}-${String(base.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
+function transactionSource(appendix: unknown) {
+  if (appendix && typeof appendix === 'object' && 'source' in appendix) {
+    const source = (appendix as { source?: unknown }).source
+    if (typeof source === 'string' && source.trim()) return source
+  }
+
+  return 'Добавлен вручную'
+}
+
 function periodsBetween(from: string, to: string) {
   if (from > to) return []
   const periods: string[] = []
@@ -495,7 +504,7 @@ export function BudgetWorkspacePage() {
             <div className="row"><button type="submit">Сохранить</button><button type="button" onClick={() => setSelectedTransactionId(null)}>Отмена</button></div>
           </form></article>}
 
-          <article className="card span-2"><h3>Транзакции</h3><table><thead><tr><th>Дата</th><th>Категория</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>{transactionsQuery.data.items.map((item) => <tr key={item.id}><td>{formatForTable(item.completedDate)}</td><td>{categoryMap.get(item.categoryId)?.name ?? item.categoryId}</td><td>{moneyLabel(item.amount)}</td><td className="row"><button onClick={() => setSelectedTransactionId(item.id)}>Редактировать</button><button onClick={async () => {
+          <article className="card span-2"><h3>Транзакции</h3><table><thead><tr><th>Дата</th><th>Категория</th><th>Сумма</th><th>Источник</th><th>Действия</th></tr></thead><tbody>{transactionsQuery.data.items.map((item) => <tr key={item.id}><td>{formatForTable(item.completedDate)}</td><td>{categoryMap.get(item.categoryId)?.name ?? item.categoryId}</td><td>{moneyLabel(item.amount)}</td><td>{transactionSource(item.appendix)}</td><td className="row"><button onClick={() => setSelectedTransactionId(item.id)}>Редактировать</button><button onClick={async () => {
             try {
               await deleteTx.mutateAsync(item.id)
               toast.success('Транзакция удалена.')

@@ -43,12 +43,17 @@ export type Category = {
   isConsumption: boolean
 }
 
+export type TransactionAppendix = {
+  source?: unknown
+  [key: string]: unknown
+}
+
 export type Transaction = {
   id: string
   categoryId: string
   completedDate: string
   amount: number
-  appendix?: unknown
+  appendix?: TransactionAppendix | null
 }
 
 export type ImportedBankStatementTransaction = {

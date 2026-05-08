@@ -56,7 +56,13 @@ class ImportBankStatementService(
                 throw BadRequestException("Bank statement does not contain transactions")
             }
 
-            val categories = mutableMapOf<Boolean, Category>()
+            val categories = listBudgetCategoriesOutputPort.execute(
+                ListBudgetCategoriesRequest(
+                    budgetId = request.budgetId,
+                    page = 0,
+                    size = 1000,
+                )
+            ).items.associateByTo(mutableMapOf()) { categoryCacheKey(it.name, it.isConsumption) }
             var skippedCount = 0
             val importedTransactions = statement.transactions.mapNotNull { parsedTransaction ->
                 val importFingerprint = importFingerprint(statement, parsedTransaction)
@@ -72,14 +78,15 @@ class ImportBankStatementService(
                 }
 
                 val isConsumption = parsedTransaction.amount.signum() < 0
-                val category = categories.getOrPut(isConsumption) {
-                    findOrCreateFallbackCategory(
+                val categoryName = categoryName(parsedTransaction)
+                val category = categories.getOrPut(categoryCacheKey(categoryName, isConsumption)) {
+                    findCategoryByName(
                         budgetId = request.budgetId,
-                        name = fallbackCategoryName(isConsumption),
+                        name = categoryName,
                         isConsumption = isConsumption,
                     ) ?: saveCategoryOutputPort.execute(
                         budget.createCategory(
-                            name = fallbackCategoryName(isConsumption),
+                            name = categoryName,
                             isConsumption = isConsumption,
                         )
                     )
@@ -129,7 +136,16 @@ class ImportBankStatementService(
             )
         }
 
-    private fun findOrCreateFallbackCategory(
+    private fun categoryName(transaction: ParsedBankStatementTransaction): String =
+        transaction.merchantName
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+            ?: transaction.description.trim().ifEmpty { DEFAULT_CATEGORY_NAME }
+
+    private fun categoryCacheKey(name: String, isConsumption: Boolean): String =
+        "${isConsumption}:${name.trim().lowercase()}"
+
+    private fun findCategoryByName(
         budgetId: UUID,
         name: String,
         isConsumption: Boolean,
@@ -138,14 +154,11 @@ class ImportBankStatementService(
             ListBudgetCategoriesRequest(
                 budgetId = budgetId,
                 page = 0,
-                size = 1000,
+                size = 1,
                 name = name,
                 isConsumption = isConsumption,
             )
         ).items.firstOrNull { it.name.equals(name, ignoreCase = true) && it.isConsumption == isConsumption }
-
-    private fun fallbackCategoryName(isConsumption: Boolean): String =
-        if (isConsumption) DEFAULT_EXPENSE_CATEGORY_NAME else DEFAULT_INCOME_CATEGORY_NAME
 
     private fun statementAppendix(
         request: ImportBankStatementCommand,
@@ -154,7 +167,7 @@ class ImportBankStatementService(
         importFingerprint: String,
     ): Map<String, Any> =
         linkedMapOf<String, Any?>(
-            "source" to "BANK_STATEMENT_IMPORT",
+            "source" to "${request.bank.name}-${request.fileName ?: UNKNOWN_FILE_NAME}",
             "importFingerprint" to importFingerprint,
             "bank" to request.bank.name,
             "format" to request.format.name,
@@ -192,7 +205,7 @@ class ImportBankStatementService(
     }
 
     companion object {
-        private const val DEFAULT_EXPENSE_CATEGORY_NAME = "Без категории"
-        private const val DEFAULT_INCOME_CATEGORY_NAME = "Без категории (доходы)"
+        private const val DEFAULT_CATEGORY_NAME = "Без категории"
+        private const val UNKNOWN_FILE_NAME = "unknown"
     }
 }
