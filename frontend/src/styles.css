@@ -79,6 +79,50 @@ button:disabled { opacity: 0.65; cursor: not-allowed; }
 .theme-switcher { display: flex; align-items: center; gap: 0.5rem; color: var(--muted); }
 .error { color: var(--danger); }
 .muted { color: var(--muted); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.import-file-name {
+  overflow-wrap: anywhere;
+  margin: -0.25rem 0 0;
+}
+.import-result {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+.import-result ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.import-result li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.import-result li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.import-result li strong {
+  white-space: nowrap;
+}
 
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }

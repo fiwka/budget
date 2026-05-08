@@ -51,6 +51,22 @@ export type Transaction = {
   appendix?: unknown
 }
 
+export type ImportedBankStatementTransaction = {
+  transactionId: string
+  categoryId: string
+  completedDate: string
+  amount: number
+  merchantName?: string | null
+  description: string
+}
+
+export type BankStatementImportResponse = {
+  bank: 'VTB'
+  importedCount: number
+  skippedCount: number
+  transactions: ImportedBankStatementTransaction[]
+}
+
 export type ApiProblem = {
   status?: number
   title?: string

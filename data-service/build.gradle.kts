@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.confluent.avro.serializer)
     implementation(libs.confluent.schema.registry.client)
     implementation(libs.apache.avro)
+    implementation("org.apache.pdfbox:pdfbox:3.0.5")
     implementation(libs.mapstruct)
     implementation(libs.springdoc.webmvc.ui)
     implementation(project(":common"))

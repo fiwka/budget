@@ -53,5 +53,22 @@ interface TransactionRepository : JpaRepository<TransactionEntity, UUID> {
 		@Param("appendixContains") appendixContains: String?,
 		pageable: Pageable,
 	): Page<TransactionEntity>
+
+	@Query(
+		value = """
+			select exists(
+				select 1
+				from transactions t
+				join categories c on c.id = t.category_id
+				where c.budget_id = :budgetId
+				  and t.appendix ->> 'importFingerprint' = :importFingerprint
+			)
+		""",
+		nativeQuery = true,
+	)
+	fun existsImportedTransaction(
+		@Param("budgetId") budgetId: UUID,
+		@Param("importFingerprint") importFingerprint: String,
+	): Boolean
 }
 

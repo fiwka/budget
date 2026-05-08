@@ -20,7 +20,7 @@ spring:
             - id: data-service-protected
               uri: lb://data-service
               predicates:
-                - Path=/api/budget/**,/api/category/**,/api/transaction/**,/api/user/**
+                - Path=/api/budget/**,/api/category/**,/api/transaction/**,/api/user/**,/api/bank-statement-import/**
               filters:
                 - RemoveRequestHeader=Cookie
             - id: analytics-service-protected

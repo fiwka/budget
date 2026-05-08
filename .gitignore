@@ -1,5 +1,6 @@
 docker_data
 **/**.env
+**.pdf
 
 .gradle
 build/

@@ -42,11 +42,12 @@ function shouldRetryAfterRefresh(path: string, init: RequestInit): boolean {
 }
 
 export async function request<T>(path: string, init: RequestInit = {}, retryAfterRefresh = true): Promise<T> {
+  const isFormData = init.body instanceof FormData
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
     headers: {
-      ...jsonHeaders,
+      ...(isFormData ? {} : jsonHeaders),
       ...(init.headers ?? {}),
     },
   })

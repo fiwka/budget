@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm'
 import { useNavigate, useParams } from 'react-router-dom'
 import * as assistantApi from '../api/assistant'
 import * as analyticsApi from '../api/analytics'
+import * as bankStatementImportApi from '../api/bankStatementImport'
 import * as budgetApi from '../api/budget'
 import * as categoryApi from '../api/category'
 import { queryKeys } from '../api/queryKeys'
@@ -68,6 +69,12 @@ export function BudgetWorkspacePage() {
   const [assistantInput, setAssistantInput] = useState('')
   const [assistantSending, setAssistantSending] = useState(false)
   const [assistantStatus, setAssistantStatus] = useState('')
+  const [bankStatementFileName, setBankStatementFileName] = useState('')
+  const [lastImportResult, setLastImportResult] = useState<{
+    importedCount: number
+    skippedCount: number
+    preview: Array<{ transactionId: string; merchantName?: string | null; amount: number }>
+  } | null>(null)
   const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
     {
       id: 'welcome',
@@ -130,6 +137,15 @@ export function BudgetWorkspacePage() {
     onSuccess: invalidateCurrent,
   })
   const deleteTx = useMutation({ mutationFn: transactionApi.deleteTransaction, onSuccess: invalidateCurrent })
+  const importBankStatement = useMutation({
+    mutationFn: bankStatementImportApi.importBankStatement,
+    onSuccess: async () => {
+      await Promise.all([
+        invalidateCurrent(),
+        qc.invalidateQueries({ queryKey: queryKeys.analytics(id, analyticsPeriods.join(',')) }),
+      ])
+    },
+  })
   const updateBudget = useMutation({
     mutationFn: ({ id: bid, name, description }: { id: string; name: string; description: string }) =>
       budgetApi.updateBudget(bid, { name, description }),
@@ -235,6 +251,41 @@ export function BudgetWorkspacePage() {
       toast.success('Транзакция обновлена.')
     } catch (err) {
       toast.error(humanizeError(err, 'Не удалось обновить транзакцию.'))
+    }
+  }
+
+  async function onImportBankStatement(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formElement = e.currentTarget
+    const form = new FormData(formElement)
+    const file = form.get('file')
+    if (!(file instanceof File) || file.size === 0) {
+      toast.error('Выберите PDF-файл выписки.')
+      return
+    }
+
+    try {
+      const response = await importBankStatement.mutateAsync({
+        budgetId: id,
+        file,
+        bank: 'VTB',
+        format: 'PDF',
+        zoneId: String(form.get('zoneId') || Intl.DateTimeFormat().resolvedOptions().timeZone || ''),
+      })
+      setLastImportResult({
+        importedCount: response.importedCount,
+        skippedCount: response.skippedCount,
+        preview: response.transactions.slice(0, 5).map((item) => ({
+          transactionId: item.transactionId,
+          merchantName: item.merchantName,
+          amount: item.amount,
+        })),
+      })
+      setBankStatementFileName('')
+      formElement.reset()
+      toast.success(`Импортировано: ${response.importedCount}. Пропущено дублей: ${response.skippedCount}.`)
+    } catch (err) {
+      toast.error(humanizeError(err, 'Не удалось импортировать выписку.'))
     }
   }
 
@@ -391,6 +442,51 @@ export function BudgetWorkspacePage() {
             <label>Дата и время<input name="completedDate" type="datetime-local" required /></label>
             <label>Сумма<input name="amount" type="number" step="0.01" min="0.01" required /></label>
             <button type="submit">Создать</button></form></article>
+
+          <article className="card">
+            <h3>Импорт выписки</h3>
+            <form className="form-grid" onSubmit={(e) => void onImportBankStatement(e)}>
+              <label>
+                Банк
+                <select name="bank" defaultValue="VTB" disabled>
+                  <option value="VTB">ВТБ</option>
+                </select>
+              </label>
+              <label>
+                Файл PDF
+                <input
+                  name="file"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  required
+                  onChange={(event) => setBankStatementFileName(event.currentTarget.files?.[0]?.name ?? '')}
+                />
+              </label>
+              <input type="hidden" name="zoneId" value={Intl.DateTimeFormat().resolvedOptions().timeZone} />
+              {bankStatementFileName && <p className="muted import-file-name">{bankStatementFileName}</p>}
+              <button type="submit" disabled={importBankStatement.isPending}>
+                {importBankStatement.isPending ? 'Импорт...' : 'Импортировать'}
+              </button>
+            </form>
+            {lastImportResult && (
+              <div className="import-result">
+                <div className="row">
+                  <span className="badge">Добавлено: {lastImportResult.importedCount}</span>
+                  <span className="badge">Дубли: {lastImportResult.skippedCount}</span>
+                </div>
+                {lastImportResult.preview.length > 0 && (
+                  <ul>
+                    {lastImportResult.preview.map((item) => (
+                      <li key={item.transactionId}>
+                        <span>{item.merchantName ?? 'Операция'}</span>
+                        <strong>{moneyLabel(item.amount)}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </article>
 
           {selectedTransaction && <article className="card"><h3>Редактирование транзакции</h3><form className="form-grid" onSubmit={(e) => void onUpdateTransaction(e)}>
             <label>Категория<select name="categoryId" defaultValue={selectedTransaction.categoryId} required>{(categoriesQuery.data?.items ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
