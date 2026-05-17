@@ -9,10 +9,10 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(24)
 
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_25
+        jvmTarget = JvmTarget.JVM_24
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
     }
 }

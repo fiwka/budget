@@ -10,6 +10,7 @@ dependencies {
     implementation("org.springframework.session:spring-session-data-redis")
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:${libs.versions.springdoc.get()}")
     implementation("com.github.ben-manes.caffeine:caffeine")
+    testImplementation("io.projectreactor:reactor-test")
 }
 
 dependencyManagement {

@@ -13,6 +13,7 @@ springdoc = "3.0.2"
 confluent = "8.2.0"
 avro = "1.12.1"
 avro-plugin = "1.9.1"
+testcontainers = "2.0.5"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -27,6 +28,7 @@ springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc
 confluent-avro-serializer = { module = "io.confluent:kafka-avro-serializer", version.ref = "confluent" }
 confluent-schema-registry-client = { module = "io.confluent:kafka-schema-registry-client", version.ref = "confluent" }
 apache-avro = { module = "org.apache.avro:avro", version.ref = "avro" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
 
 [plugins]
 avro-plugin = { id = "com.github.davidmc24.gradle.plugin.avro", version.ref = "avro-plugin" }

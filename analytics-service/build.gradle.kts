@@ -14,7 +14,12 @@ dependencies {
     implementation(libs.confluent.schema.registry.client)
     implementation(libs.apache.avro)
     implementation(libs.springdoc.webmvc.ui)
+    testImplementation(platform(libs.testcontainers.bom))
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     runtimeOnly(libs.postgresql)
 }
 
