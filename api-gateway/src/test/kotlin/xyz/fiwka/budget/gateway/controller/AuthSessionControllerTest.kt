@@ -3,12 +3,9 @@ package xyz.fiwka.budget.gateway.controller
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
-import org.springframework.web.server.WebSession
 import reactor.core.publisher.Mono
 import xyz.fiwka.budget.gateway.model.AuthSessionTokens
 import xyz.fiwka.budget.gateway.model.AuthTokenResponse

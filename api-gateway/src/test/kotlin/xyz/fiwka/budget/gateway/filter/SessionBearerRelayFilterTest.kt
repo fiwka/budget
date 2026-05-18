@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
 import org.springframework.web.server.ServerWebExchange
-import org.springframework.web.server.WebSession
 import reactor.core.publisher.Mono
 import xyz.fiwka.budget.gateway.service.AuthSessionService
 
@@ -60,7 +59,7 @@ class SessionBearerRelayFilterTest {
         `when`(service.resolveAccessToken(anyValue())).thenReturn(Mono.empty())
         val exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/budget/accessible"))
 
-        filter.filter(exchange, GatewayFilterChain { Mono.empty() }).block()
+        filter.filter(exchange) { Mono.empty() }.block()
 
         assertEquals(HttpStatus.UNAUTHORIZED, exchange.response.statusCode)
     }
